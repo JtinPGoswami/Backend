@@ -4,9 +4,9 @@ import { Admin } from "../models/admin.model.js";
 import asyncHandler from "./asyncHandler.js";
 import { apiError } from "./apiError.js";
 
-const findUserById = asyncHandler(async ({ userId }) => {
+const findUserById = async (userId) => {
   if (!userId) {
-    throw new apiError(401, "Invalid credentials");
+    throw new apiError(401, "user id Invalid credentials");
   }
   let user = await RoomSeeker.findById(userId);
   if (!user) {
@@ -16,8 +16,8 @@ const findUserById = asyncHandler(async ({ userId }) => {
     user = await Admin.findById(userId);
   }
   return user;
-});
-const findUserByIdAndRemoveSensitiveInfo = asyncHandler(async (_id) => {
+};
+const findUserByIdAndRemoveSensitiveInfo = async (_id) => {
   if (!_id) {
     throw new apiError(401, "Invalid credentials");
   }
@@ -29,9 +29,9 @@ const findUserByIdAndRemoveSensitiveInfo = asyncHandler(async (_id) => {
     user = await Admin.findById(_id).select("-password -refreshToken");
   }
   return user;
-});
+};
 
-const findUserByUsername = asyncHandler(async (username) => {
+const findUserByUsername = async (username) => {
   if (!username) {
     throw new apiError(401, "Invalid credentials");
   }
@@ -43,9 +43,9 @@ const findUserByUsername = asyncHandler(async (username) => {
     user = await Admin.findOne(username);
   }
   return user;
-});
+};
 
-const findUserByEmail = asyncHandler(async (email) => {
+const findUserByEmail = async (email) => {
   if (!email) {
     throw new apiError(401, "Invalid credentials");
   }
@@ -66,7 +66,7 @@ const findUserByEmail = asyncHandler(async (email) => {
   }
 
   return null;
-});
+};
 
 export {
   findUserById,

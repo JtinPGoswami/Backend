@@ -52,7 +52,6 @@ const ListRooms = asyncHandler(async (req, res) => {
   ) {
     throw new apiError(400, "All fileds are require");
   }
-  console.log(req.files.roomImages.length, Array.isArray(req.files.roomImages));
 
   if (
     !req.files ||

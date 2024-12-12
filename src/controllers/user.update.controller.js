@@ -5,6 +5,7 @@ import { Admin } from "../models/admin.model.js";
 import { LandLord } from "../models/landlord.model.js";
 import { Room } from "../models/room.model.js";
 import { apiRes } from "../utils/apiRes.js";
+import { findUserById } from "../utils/findUserInDB.js";
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
@@ -19,13 +20,7 @@ const updatePassword = asyncHandler(async (req, res) => {
     throw new apiError(400, "password does not match");
   }
 
-  let user = await RoomSeeker.findById(req.user._id);
-  if (!user) {
-    user = await LandLord.findById(req.user._id);
-  }
-  if (!user) {
-    user = await Admin.findById(req.user._id);
-  }
+  const user = await findUserById(req.user._id);
   if (!user) {
     throw new apiError(401, "Invalid Access Token");
   }
@@ -42,6 +37,5 @@ const updatePassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new apiRes(200, {}, "password change successfully"));
 });
-
 
 export { updatePassword };

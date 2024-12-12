@@ -4,6 +4,7 @@ import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { apiError } from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
+import { findUserByIdAndRemoveSensitiveInfo } from "../utils/findUserInDB.js";
 
 const verifyJWT = asyncHandler(async (req, _, next) => {
   try {
@@ -25,15 +26,7 @@ const verifyJWT = asyncHandler(async (req, _, next) => {
 
     const userId = decodedToken?._id;
 
-    let user = await RoomSeeker.findById(userId).select(
-      "-password -refreshToken"
-    );
-    if (!user) {
-      user = await LandLord.findById(userId).select("-password -refreshToken");
-    }
-    if (!user) {
-      user = await Admin.findById(userId).select("-password -refreshToken");
-    }
+    const user = await findUserByIdAndRemoveSensitiveInfo(userId);
 
     if (!user) {
       console.error("User not found for ID:", userId);

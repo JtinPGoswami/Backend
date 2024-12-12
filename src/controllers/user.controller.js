@@ -146,13 +146,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
 
 const genrateAccessAndRefreshToken = async (userId) => {
   try {
-    let user = await RoomSeeker.findById(userId);
-    if (!user) {
-      user = await LandLord.findById(userId);
-    }
-    if (!user) {
-      user = await Admin.findById(userId);
-    }
+    const user = await findUserById(userId);
 
     if (!user) {
       throw new apiError(404, "User not found");
@@ -266,10 +260,10 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  console.log(req.cookies);
-
+  console.log("cookies :", req.cookies);
   const incomingRefreshTokne =
     req.cookies.refreshToken || refreshAccessToken.body.refreshToken;
+
   if (!incomingRefreshTokne) {
     throw new apiError(401, "Unorthorizes request");
   }
@@ -279,27 +273,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       incomingRefreshTokne,
       process.env.REFRESH_TOKEN_SECRET
     );
-    let user = await RoomSeeker.findById(decodedToken?._id);
 
-    if (!user) {
-      user = await LandLord.findById(decodedToken?._id);
-    }
-
-    if (!user) {
-      user = await Admin.findById(decodedToken?._id);
-    }
+    const user = await findUserById(decodedToken?._id);
 
     if (!user) {
       throw new apiError(401, "Invalid refresh token");
     }
-    console.log(
-      "token :",
-      user,
-      "decoded",
-      decodedToken,
-      "incoming :",
-      incomingRefreshTokne
-    );
 
     if (incomingRefreshTokne !== user?.refreshToken) {
       throw new apiError(401, "Refresh token in expired or used");
@@ -323,6 +302,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new apiError(401, error?.massage || "Invalid refresh token ");
   }
 });
+
 export {
   landlordRegister,
   registerSeeker,
