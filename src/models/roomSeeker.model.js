@@ -67,6 +67,21 @@ const RoomSeekerSchema = new Schema(
 );
 
 RoomSeekerSchema.pre("save", async function (next) {
+  const seeker = this;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(seeker.email)) {
+    return next(new apiError(400, "Invalid email format"));
+  }
+
+  if (seeker.password && seeker.password.length < 8) {
+    return next(new apiError(400, "Password must be at least 8 characters"));
+  }
+
+  if (seeker.username && seeker.username.length < 5) {
+    return next(new apiError(400, "Username must be at least 5 characters"));
+  }
+
   if (!this.isModified("password")) return next();
 
   this.password = await bcrypt.hash(this.password, 10);

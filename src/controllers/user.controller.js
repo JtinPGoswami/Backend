@@ -97,7 +97,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
 
   if (
     [name, email, username, password, phone, rooms].some(
-      (item) => item?.trim() === ""
+      (item) => typeof item === "string" && item.trim() === ""
     )
   ) {
     throw new apiError(400, "All fileds are require");

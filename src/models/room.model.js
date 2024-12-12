@@ -17,25 +17,28 @@ const RoomSchema = new Schema(
       require: true,
     },
     location: {
-      city: {
-        type: String,
-        require: true,
-        trim: true,
-      },
-      state: {
-        type: String,
-        require: true,
-        trim: true,
-      },
-      address: {
-        type: String,
-        trim: true,
-      },
-      pincode: {
-        type: String,
-        require: true,
-        trim: true,
-      },
+      type: String,
+      require: true,
+      trim: true,
+    },
+    city: {
+      type: String,
+      require: true,
+      trim: true,
+    },
+    state: {
+      type: String,
+      require: true,
+      trim: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    pincode: {
+      type: String,
+      require: true,
+      trim: true,
     },
     suitableFor: {
       type: String,

@@ -23,6 +23,7 @@ const ListRooms = asyncHandler(async (req, res) => {
     title,
     description,
     location,
+    city,
     state,
     address,
     pincode,
@@ -34,11 +35,22 @@ const ListRooms = asyncHandler(async (req, res) => {
     availability,
   } = req.body;
 
+  const isRoom = await Room.findOne({ location, address });
+
+  console.log("isroom ", isRoom);
+
+  if (isRoom) {
+    throw new apiError(
+      409,
+      "Land with  same location and adress is alredy present "
+    );
+  }
   if (
     [
       title,
       description,
       location,
+      city,
       state,
       address,
       pincode,
@@ -74,6 +86,7 @@ const ListRooms = asyncHandler(async (req, res) => {
     title,
     description,
     location,
+    city,
     state,
     address,
     pincode,

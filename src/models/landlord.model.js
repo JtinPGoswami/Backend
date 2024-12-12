@@ -1,3 +1,4 @@
+import { apiError } from "../utils/apiError.js";
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 
@@ -26,12 +27,12 @@ const LandLordSchema = new Schema(
       unique: true,
     },
     phone: {
-      type: Number,
+      type: String,
       require: true,
       trim: true,
       unique: true,
     },
-    ProfilePic: {
+    profilePhoto: {
       type: String,
       default:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0hA1XQ-BQxpGvqm-JrDRXhWDLqczIfze_3Q&s",
@@ -60,11 +61,32 @@ const LandLordSchema = new Schema(
 );
 
 LandLordSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  const landlord = this;
 
-  this.password = await bcrypt.hash(this.password, 10);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(landlord.email)) {
+    return next(new apiError(400, "Invalid email format"));
+  }
+
+  if (landlord.password && landlord.password.length < 8) {
+    return next(new apiError(400, "Password must be at least 8 characters"));
+  }
+
+  if (landlord.username && landlord.username.length < 5) {
+    return next(new apiError(400, "Username must be at least 5 characters"));
+  }
+  if (landlord.phone && landlord.phone.length < 10) {
+    return next(new apiError(400, "Username must be at least 5 characters"));
+  }
+
+  if (landlord.isModified("password")) {
+    landlord.password = await bcrypt.hash(landlord.password, 10);
+  }
+
   next();
 });
+
+export default mongoose.model("LandLord", LandLordSchema);
 
 LandLordSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);

@@ -1,9 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { apiError } from "../utils/apiError.js";
-import { RoomSeeker } from "../models/roomSeeker.model.js";
-import { Admin } from "../models/admin.model.js";
-import { LandLord } from "../models/landlord.model.js";
-import { Room } from "../models/room.model.js";
 import { apiRes } from "../utils/apiRes.js";
 import { findUserById } from "../utils/findUserInDB.js";
 
