@@ -32,7 +32,7 @@ const LandLordSchema = new Schema(
       trim: true,
       unique: true,
     },
-    profilePhoto: {
+    ProfilePic: {
       type: String,
       default:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0hA1XQ-BQxpGvqm-JrDRXhWDLqczIfze_3Q&s",
@@ -75,10 +75,15 @@ LandLordSchema.pre("save", async function (next) {
   if (landlord.username && landlord.username.length < 5) {
     return next(new apiError(400, "Username must be at least 5 characters"));
   }
-  if (landlord.phone && landlord.phone.length < 10) {
-    return next(new apiError(400, "Username must be at least 5 characters"));
+  const phoneRegex = /^[6-9]\d{9}$/;
+  if (landlord.phone && !phoneRegex.test(landlord.phone)) {
+    return next(
+      new apiError(
+        400,
+        "Phone number must start with 6-9 and be 10 digits long"
+      )
+    );
   }
-
   if (landlord.isModified("password")) {
     landlord.password = await bcrypt.hash(landlord.password, 10);
   }

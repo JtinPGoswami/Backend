@@ -29,11 +29,10 @@ const AdminSchema = new Schema(
       trim: true,
       match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
-    profilePhoto: {
+    ProfilePic: {
       type: String,
       default:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0hA1XQ-BQxpGvqm-JrDRXhWDLqczIfze_3Q&s",
-      match: /^(https?:\/\/[^\s$.?#].[^\s]*)$/,
     },
     refreshToken: {
       type: String,

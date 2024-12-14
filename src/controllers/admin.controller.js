@@ -33,11 +33,11 @@ const registerAdmin = asyncHandler(async (req, res) => {
   let profiePicLocalPath;
 
   if (
-    req.files &&
-    Array.isArray(req.files.profilePic) &&
-    req.files.profilePic.length > 0
+    req.file &&
+    Array.isArray(req.file.profilePic) &&
+    req.file.profilePic.length > 0
   ) {
-    profiePicLocalPath = req.files.profilePic.path;
+    profiePicLocalPath = req.file.profilePic.path;
   }
   const profilePic = await uploadOnCloudinary(profiePicLocalPath);
 
