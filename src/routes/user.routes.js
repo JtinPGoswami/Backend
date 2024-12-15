@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 
-import { registerAdmin } from "../controllers/admin.controller.js";
+// import { registerAdmin } from "../controllers/admin.controller.js";
 import {
+  getCurrentUser,
   landlordRegister,
   loginUser,
   logoutUser,
@@ -29,9 +30,9 @@ router
   .route("/register/landlord")
   .post(upload.single("profilePic"), landlordRegister);
 
-router
-  .route("/register/admin")
-  .post(upload.single("profilePic"), registerAdmin);
+// router
+//   .route("/register/admin")
+//   .post(upload.single("profilePic"), registerAdmin);
 
 //secure Routes
 router.route("/login").post(loginUser);
@@ -46,6 +47,7 @@ router
   .route("/update-profilepic")
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
+router.route("/current-user").post(verifyJWT, getCurrentUser);
 router
   .route("/list-room")
   .post(
@@ -54,4 +56,5 @@ router
     upload.fields([{ name: "roomImages", maxCount: 5 }]),
     ListRooms
   );
+
 export default router;

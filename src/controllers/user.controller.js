@@ -7,13 +7,10 @@ import { apiRes } from "../utils/apiRes.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
-  findUserByEmail,
   findUserById,
   findUserByIdAndRemoveSensitiveInfo,
-  findUserByUsername,
 } from "../utils/findUserInDB.js";
 import { Admin } from "../models/admin.model.js";
-
 const registerSeeker = asyncHandler(async (req, res) => {
   //get user details from frontend
   //validation not empty
@@ -80,7 +77,6 @@ const registerSeeker = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiRes(200, createdUser, "user registration success"));
 });
-
 const landlordRegister = asyncHandler(async (req, res) => {
   //get user details from frontend
   //validation not empty
@@ -143,7 +139,6 @@ const landlordRegister = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiRes(200, createLandLord, "user registration success"));
 });
-
 const genrateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await findUserById(userId);
@@ -175,7 +170,6 @@ const genrateAccessAndRefreshToken = async (userId) => {
     );
   }
 };
-
 const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
   if (!username) {
@@ -230,7 +224,6 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
-
 const logoutUser = asyncHandler(async (req, res) => {
   let user = RoomSeeker.findByIdAndUpdate(req.user._id, {
     refreshToken: undefined,
@@ -258,9 +251,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken", options)
     .json(new apiRes(200, {}, "logged out successfully "));
 });
-
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  console.log("cookies :", req.cookies);
   const incomingRefreshTokne =
     req.cookies.refreshToken || refreshAccessToken.body.refreshToken;
 
@@ -303,10 +294,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
+const getCurrentUser = async (req, res) => {
+  res.status(200).json(new apiRes(200, req.user, "current user is fatched"));
+};
 export {
   landlordRegister,
   registerSeeker,
   loginUser,
   logoutUser,
   refreshAccessToken,
+  getCurrentUser,
 };

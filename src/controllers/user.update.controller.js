@@ -5,13 +5,13 @@ import {
   findUserById,
   findUserByIdAndRemoveSensitiveInfo,
 } from "../utils/findUserInDB.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  deletFileFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
-
-  console.log("body :", req.body, "user :", req.user);
-  console.log(oldPassword, newPassword, confNewPassword);
 
   if (!oldPassword || !newPassword || !confNewPassword) {
     throw new apiError(400, "All fileds are require");
@@ -58,8 +58,6 @@ const updateName = asyncHandler(async (req, res) => {
 });
 
 const updateProfilePic = asyncHandler(async (req, res) => {
-  console.log(req.file.path);
-
   const profiePicLocalPath = req.file.path;
   if (!profiePicLocalPath) {
     throw new apiError(400, "profile pic is require for update");
@@ -69,31 +67,41 @@ const updateProfilePic = asyncHandler(async (req, res) => {
   if (!user) {
     throw new apiError(404, "user not found");
   }
-  const oldProfilePic = user.profilePic;
+  const oldProfilePic = user.ProfilePic;
+
+  const urlParts = oldProfilePic.split("/");
+  const fileNameWithExtension = urlParts[urlParts.length - 1];
+  const fileName = fileNameWithExtension.split(".")[0];
+  const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
+  const publicIdArray = shortFileName.split("/");
+  const publicId = publicIdArray[1];
+
   let PF;
   try {
     PF = await uploadOnCloudinary(profiePicLocalPath);
   } catch (error) {
-    console.log(error);
-
     throw new apiError(
       400,
       "something went wrong while uploding file on coludinary"
     );
   }
 
-  console.log(PF.url);
-
   user.ProfilePic = PF.url;
-  console.log(user);
 
   const updatedUser = await user.save({ validateBeforeSave: false });
 
   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
 
+  const deletedFile = await deletFileFromCloudinary(publicId);
   res
     .status(200)
-    .json(new apiRes(200, updatedUser, "profile pic updated successfully"));
+    .json(
+      new apiRes(
+        200,
+        { updatedUser, deletedFile },
+        "profile pic updated successfully"
+      )
+    );
 });
 const updatePhone = asyncHandler(async (req, res) => {
   const { phone } = req.body;

@@ -43,13 +43,11 @@ const verifyJWT = asyncHandler(async (req, _, next) => {
 });
 
 const isLandLord = asyncHandler(async (req, _, next) => {
-  console.log(req.user);
   req.user;
   try {
     if (req.user.role !== "landlord") {
       throw new apiError(401, "Unauthorized request");
     }
-    console.log("lalndlord is logged in ");
     next();
   } catch (error) {
     throw new apiError(401, error?.masssage || "Unauthorized request ");

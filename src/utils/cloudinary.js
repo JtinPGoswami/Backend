@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from "cloudinary";
-import { log } from "console";
 import fs from "fs";
 
 cloudinary.config({
@@ -14,8 +13,6 @@ const uploadOnCloudinary = async (localFilePath) => {
     const uploadResult = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
-    console.log("File is uploded successfully", uploadResult.url);
-    console.log(localFilePath);
 
     fs.unlinkSync(localFilePath);
 
@@ -28,5 +25,16 @@ const uploadOnCloudinary = async (localFilePath) => {
     return null;
   }
 };
+const deletFileFromCloudinary = async (filePublicId) => {
+  try {
+    if (!filePublicId) return "Does not find File Path";
+    const deletedFile = await cloudinary.uploader.destroy(filePublicId);
 
-export { uploadOnCloudinary };
+    return deletedFile;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+export { uploadOnCloudinary, deletFileFromCloudinary };

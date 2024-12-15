@@ -68,9 +68,20 @@ const findUserByEmail = async (email) => {
   return null;
 };
 
+const findUserByEmailAndDelete = async (email) => {
+  if (!email) {
+    throw new apiError(401, "Invalid credentials");
+  }
+  let deletedUser = await RoomSeeker.findOneAndDelete({ email });
+  if (!deletedUser) {
+    deletedUser = await LandLord.findOneAndDelete({ email });
+  }
+  return deletedUser;
+};
 export {
   findUserById,
   findUserByEmail,
   findUserByUsername,
   findUserByIdAndRemoveSensitiveInfo,
+  findUserByEmailAndDelete,
 };

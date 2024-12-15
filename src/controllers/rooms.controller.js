@@ -37,8 +37,6 @@ const ListRooms = asyncHandler(async (req, res) => {
 
   const isRoom = await Room.findOne({ location, address });
 
-  console.log("isroom ", isRoom);
-
   if (isRoom) {
     throw new apiError(
       409,
