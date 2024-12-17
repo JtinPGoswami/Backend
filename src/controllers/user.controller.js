@@ -212,7 +212,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
+    sameSite: "none",
   };
 
   res
@@ -228,6 +229,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 const logoutUser = asyncHandler(async (req, res) => {
+  console.log("debug", req.user._id);
   let user = RoomSeeker.findByIdAndUpdate(req.user._id, {
     refreshToken: undefined,
   });
@@ -245,7 +247,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
+    sameSite: "none",
   };
 
   res
@@ -284,7 +287,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: true,
+      secure: false,
+      sameSite: "none",
     };
 
     res
