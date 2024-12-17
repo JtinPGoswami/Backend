@@ -102,6 +102,9 @@ const landlordRegister = asyncHandler(async (req, res) => {
   const landOwner = await LandLord.findOne({
     $or: [{ username }, { email }],
   });
+
+  console.log("from backend ", username, email, landOwner);
+
   if (landOwner) {
     throw new apiError(409, "user with Username or email is already exists");
   }
@@ -297,6 +300,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const getCurrentUser = async (req, res) => {
   res.status(200).json(new apiRes(200, req.user, "current user is fatched"));
 };
+const getUserById = async (req, res) => {
+  const { userId } = req.body;
+  const user = await findUserByIdAndRemoveSensitiveInfo(userId);
+  res.status(200).json(new apiRes(200, user, "user fatched successfully "));
+};
 export {
   landlordRegister,
   registerSeeker,
@@ -304,4 +312,5 @@ export {
   logoutUser,
   refreshAccessToken,
   getCurrentUser,
+  getUserById,
 };

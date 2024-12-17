@@ -4,6 +4,7 @@ import { upload } from "../middlewares/multer.middleware.js";
 // import { registerAdmin } from "../controllers/admin.controller.js";
 import {
   getCurrentUser,
+  getUserById,
   landlordRegister,
   loginUser,
   logoutUser,
@@ -48,6 +49,7 @@ router
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
 router.route("/current-user").post(verifyJWT, getCurrentUser);
+router.route("/get-user").post(verifyJWT, getUserById);
 router
   .route("/list-room")
   .post(
