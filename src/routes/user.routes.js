@@ -5,6 +5,7 @@ import { upload } from "../middlewares/multer.middleware.js";
 import {
   getCurrentUser,
   getUserById,
+  isUserLogIn,
   landlordRegister,
   loginUser,
   logoutUser,
@@ -49,6 +50,7 @@ router
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
 router.route("/current-user").post(verifyJWT, getCurrentUser);
+router.route("/islogin").post(isUserLogIn);
 router.route("/get-user").post(verifyJWT, getUserById);
 router
   .route("/list-room")

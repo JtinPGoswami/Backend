@@ -213,7 +213,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: false,
-    sameSite: "none",
+    sameSite: "lax",
   };
 
   res
@@ -248,7 +248,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: false,
-    sameSite: "none",
+    sameSite: "lax",
   };
 
   res
@@ -288,9 +288,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const options = {
       httpOnly: true,
       secure: false,
-      sameSite: "none",
+      sameSite: "lax",
     };
-
     res
       .status(200)
       .cookie("accessToken", accessToken, options)
@@ -309,6 +308,31 @@ const getUserById = async (req, res) => {
   const user = await findUserByIdAndRemoveSensitiveInfo(userId);
   res.status(200).json(new apiRes(200, user, "user fatched successfully "));
 };
+const isUserLogIn = async (req, res) => {
+  try {
+    const token = req.cookies?.accessToken;
+    if (!token) {
+      res.send("user not found ");
+    }
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+      return false;
+    }
+
+    const userId = decodedToken?._id;
+
+    const user = await findUserByIdAndRemoveSensitiveInfo(userId);
+
+    if (!user) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.log(error);
+  }
+};
 export {
   landlordRegister,
   registerSeeker,
@@ -317,4 +341,5 @@ export {
   refreshAccessToken,
   getCurrentUser,
   getUserById,
+  isUserLogIn,
 };
