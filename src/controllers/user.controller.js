@@ -103,8 +103,6 @@ const landlordRegister = asyncHandler(async (req, res) => {
     $or: [{ username }, { email }],
   });
 
-  console.log("from backend ", username, email, landOwner);
-
   if (landOwner) {
     throw new apiError(409, "user with Username or email is already exists");
   }
@@ -229,7 +227,6 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 const logoutUser = asyncHandler(async (req, res) => {
-  console.log("debug", req.user._id);
   let user = RoomSeeker.findByIdAndUpdate(req.user._id, {
     refreshToken: undefined,
   });
@@ -308,31 +305,7 @@ const getUserById = async (req, res) => {
   const user = await findUserByIdAndRemoveSensitiveInfo(userId);
   res.status(200).json(new apiRes(200, user, "user fatched successfully "));
 };
-const isUserLogIn = async (req, res) => {
-  try {
-    const token = req.cookies?.accessToken;
-    if (!token) {
-      res.send("user not found ");
-    }
-    let decodedToken;
-    try {
-      decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    } catch (err) {
-      return false;
-    }
 
-    const userId = decodedToken?._id;
-
-    const user = await findUserByIdAndRemoveSensitiveInfo(userId);
-
-    if (!user) {
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.log(error);
-  }
-};
 export {
   landlordRegister,
   registerSeeker,
@@ -341,5 +314,4 @@ export {
   refreshAccessToken,
   getCurrentUser,
   getUserById,
-  isUserLogIn,
 };

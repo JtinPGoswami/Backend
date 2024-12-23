@@ -6,7 +6,7 @@ const LandLordSchema = new Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     email: {
@@ -75,6 +75,7 @@ LandLordSchema.pre("save", async function (next) {
   if (landlord.username && landlord.username.length < 5) {
     return next(new apiError(400, "Username must be at least 5 characters"));
   }
+
   const phoneRegex = /^[6-9]\d{9}$/;
   if (landlord.phone && !phoneRegex.test(landlord.phone)) {
     return next(
@@ -84,17 +85,12 @@ LandLordSchema.pre("save", async function (next) {
       )
     );
   }
+
   if (landlord.isModified("password")) {
     landlord.password = await bcrypt.hash(landlord.password, 10);
   }
 
   next();
 });
-
-export default mongoose.model("LandLord", LandLordSchema);
-
-LandLordSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password);
-};
 
 export const LandLord = mongoose.model("LandLord", LandLordSchema);

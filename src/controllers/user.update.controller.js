@@ -59,6 +59,8 @@ const updateName = asyncHandler(async (req, res) => {
 
 const updateProfilePic = asyncHandler(async (req, res) => {
   const profiePicLocalPath = req.file.path;
+  console.log(profiePicLocalPath);
+
   if (!profiePicLocalPath) {
     throw new apiError(400, "profile pic is require for update");
   }
@@ -98,7 +100,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
     .json(
       new apiRes(
         200,
-        { updatedUser, deletedFile },
+        { newuser, deletedFile },
         "profile pic updated successfully"
       )
     );
@@ -160,6 +162,66 @@ const updateUsername = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiRes(200, newuser, "username updated successfully "));
 });
+
+const updateUser = asyncHandler(async (req, res) => {
+  const user = req.user;
+  if (user.role === "landlord") {
+    const { name, username, email, phone } = req.body;
+    if (
+      [name, email, username, phone].some(
+        (item) => typeof item === "string" && item.trim() === ""
+      )
+    ) {
+      throw new apiError(400, "All fileds are require");
+    }
+    const landOwner = await LandLord.findOne({
+      $or: [{ username }, { email }],
+    });
+    landOwner.name = name;
+    landOwner.username = username;
+    landOwner.email = email;
+    landOwner.phone = phone;
+    await landOwner.save({ validateBeforeSave: false });
+  } else if (user.role === "seeker") {
+    const { name, email, username, phone, gender, age, profession } = req.body;
+    if (
+      [name, email, username, phone, gender, age, profession].some(
+        (item) => typeof item === "string" && item.trim() === ""
+      )
+    ) {
+      throw new apiError(400, "All fileds are require");
+    }
+    const seeker = await RoomSeeker.findOne({
+      $or: [{ username }, { email }],
+    });
+    seeker.name = name;
+    seeker.username = username;
+    seeker.email = email;
+    seeker.phone = phone;
+    seeker.gender = gender;
+    seeker.age = age;
+    seeker.profession = profession;
+    await seeker.save({ validateBeforeSave: false });
+  } else if (user.role === "admin") {
+    const { name, email, username } = req.body;
+    if (
+      [name, email, username].some(
+        (item) => typeof item === "string" && item.trim() === ""
+      )
+    ) {
+      throw new apiError(400, "All fileds are require");
+    }
+    const admin = await Admin.findOne({
+      $or: [{ username }, { email }],
+    });
+    admin.name = name;
+    admin.username = username;
+    admin.email = email;
+
+    await admin.save({ validateBeforeSave: false });
+  }
+  res.status(200).json(new apiRes(200, newuser, "user found successfully"));
+});
 export {
   updatePassword,
   updateName,
@@ -167,4 +229,5 @@ export {
   updatePhone,
   updateUsername,
   updateProfilePic,
+  updateUser,
 };

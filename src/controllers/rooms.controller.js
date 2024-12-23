@@ -6,19 +6,6 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const ListRooms = asyncHandler(async (req, res) => {
-  //get rooms data from frountend
-  //validate imp data present or not
-  //get images
-  //set images on cloudinary  and store the urls
-  //create room and set in data base
-  // get id of room
-
-  //get logged in user data from req.user (via middleware)
-  //get user from db
-  //set room id in user.rooms
-  // save user
-  //send response
-
   const {
     title,
     description,
@@ -40,9 +27,10 @@ const ListRooms = asyncHandler(async (req, res) => {
   if (isRoom) {
     throw new apiError(
       409,
-      "Land with  same location and adress is alredy present "
+      "Land with the same location and address is already present"
     );
   }
+
   if (
     [
       title,
@@ -57,10 +45,12 @@ const ListRooms = asyncHandler(async (req, res) => {
       availability,
     ].some(
       (item) =>
-        item.trim() === "" || item === undefined || item === null || item === ""
+        item === undefined ||
+        item === null ||
+        (typeof item === "string" && item.trim() === "")
     )
   ) {
-    throw new apiError(400, "All fileds are require");
+    throw new apiError(400, "All fields are required");
   }
 
   if (
@@ -70,7 +60,7 @@ const ListRooms = asyncHandler(async (req, res) => {
   ) {
     throw new apiError(
       400,
-      "At least one image of Room is require for listing "
+      "At least one image of the room is required for listing"
     );
   }
 
@@ -79,6 +69,8 @@ const ListRooms = asyncHandler(async (req, res) => {
   );
 
   const uploadedImageUrls = uploadImg.map((upload) => upload.url);
+
+  const featuresArray = features.split(",").map((feature) => feature.trim());
 
   const createdRoom = await Room.create({
     title,
@@ -92,23 +84,31 @@ const ListRooms = asyncHandler(async (req, res) => {
     rent,
     advance,
     discount,
-    features,
+    features: featuresArray,
     availability,
     photos: uploadedImageUrls,
+    ownerID: req.user._id,
   });
 
   if (!createdRoom) {
-    throw new apiError(500, "Room Listing fail try again ");
+    throw new apiError(500, "Room listing failed, please try again");
   }
-  const roomId = createdRoom._id;
 
   const LoggedinUser = await LandLord.findById(req.user._id);
 
-  LoggedinUser.rooms.push(roomId);
+  LoggedinUser.rooms.push(createdRoom._id);
 
   LoggedinUser.save({ validateBeforeSave: false });
 
   res.status(200).json(new apiRes(200, "Room listed successfully"));
 });
 
-export { ListRooms };
+const FindListedRoomByLandLord = asyncHandler(async (req, res) => {
+  const { ownerID } = req.body;
+  const rooms = await Room.find({ ownerID });
+  if (!rooms) {
+    throw new apiError(404, "No Room listed by you ");
+  }
+  res.status(200).json(new apiRes(200, rooms));
+});
+export { ListRooms, FindListedRoomByLandLord };

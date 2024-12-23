@@ -5,7 +5,6 @@ import { upload } from "../middlewares/multer.middleware.js";
 import {
   getCurrentUser,
   getUserById,
-  isUserLogIn,
   landlordRegister,
   loginUser,
   logoutUser,
@@ -13,13 +12,17 @@ import {
   registerSeeker,
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
-import { ListRooms } from "../controllers/rooms.controller.js";
+import {
+  FindListedRoomByLandLord,
+  ListRooms,
+} from "../controllers/rooms.controller.js";
 import {
   updateName,
   updatePassword,
   updatePhone,
   updateProfession,
   updateProfilePic,
+  updateUser,
   updateUsername,
 } from "../controllers/user.update.controller.js";
 const router = Router();
@@ -45,12 +48,13 @@ router.route("/update-name").post(verifyJWT, updateName);
 router.route("/update-phone").post(verifyJWT, updatePhone);
 router.route("/update-prof").post(verifyJWT, updateProfession);
 router.route("/update-username").post(verifyJWT, updateUsername);
+router.route("/update-user").post(verifyJWT, updateUser);
+
 router
   .route("/update-profilepic")
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
 router.route("/current-user").post(verifyJWT, getCurrentUser);
-router.route("/islogin").post(isUserLogIn);
 router.route("/get-user").post(verifyJWT, getUserById);
 router
   .route("/list-room")
@@ -60,5 +64,8 @@ router
     upload.fields([{ name: "roomImages", maxCount: 5 }]),
     ListRooms
   );
+router
+  .route("/listed-room")
+  .post(verifyJWT, isLandLord, FindListedRoomByLandLord);
 
 export default router;
