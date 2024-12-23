@@ -1,6 +1,9 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { apiError } from "../utils/apiError.js";
 import { apiRes } from "../utils/apiRes.js";
+import { LandLord } from "../models/landlord.model.js";
+import { RoomSeeker } from "../models/roomSeeker.model.js";
+import { Admin } from "../models/admin.model.js";
 import {
   findUserById,
   findUserByIdAndRemoveSensitiveInfo,
@@ -12,6 +15,12 @@ import {
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
+  console.log(
+    "password is coming to the backend",
+    oldPassword,
+    newPassword,
+    confNewPassword
+  );
 
   if (!oldPassword || !newPassword || !confNewPassword) {
     throw new apiError(400, "All fileds are require");
@@ -37,25 +46,25 @@ const updatePassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new apiRes(200, {}, "password change successfully"));
 });
-const updateName = asyncHandler(async (req, res) => {
-  const { name } = req.body;
+// const updateName = asyncHandler(async (req, res) => {
+//   const { name } = req.body;
 
-  if (!name) {
-    throw new apiError(400, "Name is require for updating");
-  }
+//   if (!name) {
+//     throw new apiError(400, "Name is require for updating");
+//   }
 
-  const user = await findUserById(req.user._id);
+//   const user = await findUserById(req.user._id);
 
-  if (!user) {
-    throw new apiError(404, "user not found ");
-  }
-  user.name = name;
+//   if (!user) {
+//     throw new apiError(404, "user not found ");
+//   }
+//   user.name = name;
 
-  const updatedUser = await user.save({ validateBeforeSave: false });
-  const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
+//   const updatedUser = await user.save({ validateBeforeSave: false });
+//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
 
-  res.status(200).json(new apiRes(200, newuser, "name updated successfully "));
-});
+//   res.status(200).json(new apiRes(200, newuser, "name updated successfully "));
+// });
 
 const updateProfilePic = asyncHandler(async (req, res) => {
   const profiePicLocalPath = req.file.path;
@@ -105,63 +114,63 @@ const updateProfilePic = asyncHandler(async (req, res) => {
       )
     );
 });
-const updatePhone = asyncHandler(async (req, res) => {
-  const { phone } = req.body;
+// const updatePhone = asyncHandler(async (req, res) => {
+//   const { phone } = req.body;
 
-  if (!phone) {
-    throw new apiError(400, "phone number is require for updating");
-  }
+//   if (!phone) {
+//     throw new apiError(400, "phone number is require for updating");
+//   }
 
-  const user = await findUserById(req.user._id);
-  if (!user) {
-    throw new apiError(404, "user not found ");
-  }
+//   const user = await findUserById(req.user._id);
+//   if (!user) {
+//     throw new apiError(404, "user not found ");
+//   }
 
-  user.phone = phone;
-  const updatedUser = await user.save({ validateBeforeSave: false });
-  const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
+//   user.phone = phone;
+//   const updatedUser = await user.save({ validateBeforeSave: false });
+//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
 
-  res
-    .status(200)
-    .json(new apiRes(200, newuser, "phone number updated successfully"));
-});
-const updateProfession = asyncHandler(async (req, res) => {
-  const { profession } = req.body;
-  if (!profession) {
-    throw new apiError(400, "profession is require for updating");
-  }
-  const user = await findUserById(req.user._id);
-  if (!user) {
-    throw new apiError(404, "user not found ");
-  }
+//   res
+//     .status(200)
+//     .json(new apiRes(200, newuser, "phone number updated successfully"));
+// });
+// const updateProfession = asyncHandler(async (req, res) => {
+//   const { profession } = req.body;
+//   if (!profession) {
+//     throw new apiError(400, "profession is require for updating");
+//   }
+//   const user = await findUserById(req.user._id);
+//   if (!user) {
+//     throw new apiError(404, "user not found ");
+//   }
 
-  user.profession = profession;
-  const updatedUser = await user.save({ validateBeforeSave: false });
-  const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
-  res
-    .status(200)
-    .json(new apiRes(200, newuser, "profession updated successfully "));
-});
-const updateUsername = asyncHandler(async (req, res) => {
-  const { username } = req.body;
-  if (!username) {
-    throw new apiError(400, "username is require for updating");
-  }
-  const user = await findUserById(req.user._id);
+//   user.profession = profession;
+//   const updatedUser = await user.save({ validateBeforeSave: false });
+//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
+//   res
+//     .status(200)
+//     .json(new apiRes(200, newuser, "profession updated successfully "));
+// });
+// const updateUsername = asyncHandler(async (req, res) => {
+//   const { username } = req.body;
+//   if (!username) {
+//     throw new apiError(400, "username is require for updating");
+//   }
+//   const user = await findUserById(req.user._id);
 
-  if (!user) {
-    throw new apiError(404, "user not found ");
-  }
+//   if (!user) {
+//     throw new apiError(404, "user not found ");
+//   }
 
-  user.username = username;
+//   user.username = username;
 
-  const updatedUser = await user.save({ validateBeforeSave: false });
-  const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
+//   const updatedUser = await user.save({ validateBeforeSave: false });
+//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
 
-  res
-    .status(200)
-    .json(new apiRes(200, newuser, "username updated successfully "));
-});
+//   res
+//     .status(200)
+//     .json(new apiRes(200, newuser, "username updated successfully "));
+// });
 
 const updateUser = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -220,14 +229,6 @@ const updateUser = asyncHandler(async (req, res) => {
 
     await admin.save({ validateBeforeSave: false });
   }
-  res.status(200).json(new apiRes(200, newuser, "user found successfully"));
+  res.status(200).json(new apiRes(200, {}, "user found successfully"));
 });
-export {
-  updatePassword,
-  updateName,
-  updateProfession,
-  updatePhone,
-  updateUsername,
-  updateProfilePic,
-  updateUser,
-};
+export { updatePassword, updateUser, updateProfilePic };

@@ -17,13 +17,9 @@ import {
   ListRooms,
 } from "../controllers/rooms.controller.js";
 import {
-  updateName,
   updatePassword,
-  updatePhone,
-  updateProfession,
   updateProfilePic,
   updateUser,
-  updateUsername,
 } from "../controllers/user.update.controller.js";
 const router = Router();
 
@@ -44,10 +40,6 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/update-password").post(verifyJWT, updatePassword);
-router.route("/update-name").post(verifyJWT, updateName);
-router.route("/update-phone").post(verifyJWT, updatePhone);
-router.route("/update-prof").post(verifyJWT, updateProfession);
-router.route("/update-username").post(verifyJWT, updateUsername);
 router.route("/update-user").post(verifyJWT, updateUser);
 
 router

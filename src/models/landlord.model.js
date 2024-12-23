@@ -93,4 +93,7 @@ LandLordSchema.pre("save", async function (next) {
   next();
 });
 
+LandLordSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 export const LandLord = mongoose.model("LandLord", LandLordSchema);
