@@ -21,12 +21,12 @@ const findUserByIdAndRemoveSensitiveInfo = async (_id) => {
   if (!_id) {
     throw new apiError(401, "Invalid credentials");
   }
-  let user = await RoomSeeker.findById(_id).select("-password -refreshToken");
+  let user = await RoomSeeker.findById(_id).select("-password ");
   if (!user) {
-    user = await LandLord.findById(_id).select("-password -refreshToken");
+    user = await LandLord.findById(_id).select("-password ");
   }
   if (!user) {
-    user = await Admin.findById(_id).select("-password -refreshToken");
+    user = await Admin.findById(_id).select("-password ");
   }
   return user;
 };

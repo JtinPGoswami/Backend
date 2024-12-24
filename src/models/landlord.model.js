@@ -42,10 +42,7 @@ const LandLordSchema = new Schema(
       require: true,
       enum: ["admin", "landlord", "seeker"],
     },
-    refreshToken: {
-      type: String,
-      require: true,
-    },
+
     rooms: {
       type: [
         {

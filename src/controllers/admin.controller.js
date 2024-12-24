@@ -52,7 +52,7 @@ import { findUserByEmailAndDelete } from "../utils/findUserInDB.js";
 //   });
 
 //   const createdUser = await Admin.findById(user._id).select(
-//     "-password -refreshToken"
+//     "-password "
 //   );
 //   if (!createdUser) {
 //     throw new apiError(500, "Something went wrong while registring the user ");

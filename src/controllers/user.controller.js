@@ -66,9 +66,7 @@ const registerSeeker = asyncHandler(async (req, res) => {
     role: "seeker",
   });
 
-  const createdUser = await RoomSeeker.findById(user._id).select(
-    "-password -refreshToken"
-  );
+  const createdUser = await RoomSeeker.findById(user._id).select("-password ");
   if (!createdUser) {
     throw new apiError(500, "Something went wrong while registring the user ");
   }
@@ -130,7 +128,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
   });
 
   const createLandLord = await LandLord.findById(landlord._id).select(
-    "-password -refreshToken"
+    "-password "
   );
   if (!createLandLord) {
     throw new apiError(500, "something went wrong while registring user");
@@ -140,7 +138,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiRes(200, createLandLord, "user registration success"));
 });
-const genrateAccessAndRefreshToken = async (userId) => {
+const genrateAccessToken = async (userId) => {
   try {
     const user = await findUserById(userId);
 
@@ -154,16 +152,7 @@ const genrateAccessAndRefreshToken = async (userId) => {
       { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
     );
 
-    const refreshToken = jwt.sign(
-      { _id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
-    );
-
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
-
-    return { accessToken, refreshToken };
+    return { accessToken };
   } catch (error) {
     throw new apiError(
       500,
@@ -195,9 +184,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new apiError(401, "invalid credentials");
   }
 
-  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(
-    user._id
-  );
+  const { accessToken } = await genrateAccessToken(user._id);
 
   if (!accessToken) {
     throw new apiError(
@@ -217,31 +204,15 @@ const loginUser = asyncHandler(async (req, res) => {
   res
     .status(200)
     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
     .json(
       new apiRes(
         200,
-        { user: loggedInUser, accessToken, refreshToken },
+        { user: loggedInUser, accessToken },
         `${user.role} logged in successfully`
       )
     );
 });
 const logoutUser = asyncHandler(async (req, res) => {
-  let user = RoomSeeker.findByIdAndUpdate(req.user._id, {
-    refreshToken: undefined,
-  });
-
-  if (!user) {
-    user = LandLord.findByIdAndUpdate(req.user._id, {
-      refreshToken: undefined,
-    });
-  }
-  if (!user) {
-    user = Admin.findByIdAndUpdate(req.user._id, {
-      refreshToken: undefined,
-    });
-  }
-
   const options = {
     httpOnly: true,
     secure: false,
@@ -251,50 +222,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   res
     .status(200)
     .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
     .json(new apiRes(200, {}, "logged out successfully "));
-});
-const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshTokne =
-    req.cookies.refreshToken || refreshAccessToken.body.refreshToken;
-
-  if (!incomingRefreshTokne) {
-    throw new apiError(401, "Unorthorizes request");
-  }
-
-  try {
-    const decodedToken = jwt.verify(
-      incomingRefreshTokne,
-      process.env.REFRESH_TOKEN_SECRET
-    );
-
-    const user = await findUserById(decodedToken?._id);
-
-    if (!user) {
-      throw new apiError(401, "Invalid refresh token");
-    }
-
-    if (incomingRefreshTokne !== user?.refreshToken) {
-      throw new apiError(401, "Refresh token in expired or used");
-    }
-
-    const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(
-      user._id
-    );
-
-    const options = {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    };
-    res
-      .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
-      .json(new apiRes(200, { accessToken, refreshToken }, "Token refreshed "));
-  } catch (error) {
-    throw new apiError(401, error?.massage || "Invalid refresh token ");
-  }
 });
 
 const getCurrentUser = async (req, res) => {
@@ -311,7 +239,6 @@ export {
   registerSeeker,
   loginUser,
   logoutUser,
-  refreshAccessToken,
   getCurrentUser,
   getUserById,
 };

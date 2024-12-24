@@ -51,10 +51,6 @@ const RoomSeekerSchema = new Schema(
       require: true,
       enum: ["student", "professional", "family", "other"],
     },
-    refreshToken: {
-      type: String,
-      require: true,
-    },
     role: {
       type: String,
       require: true,

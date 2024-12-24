@@ -34,10 +34,6 @@ const AdminSchema = new Schema(
       default:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0hA1XQ-BQxpGvqm-JrDRXhWDLqczIfze_3Q&s",
     },
-    refreshToken: {
-      type: String,
-      required: true,
-    },
     role: {
       type: String,
       required: true,
