@@ -69,6 +69,11 @@ const RoomSchema = new Schema(
       type: Boolean,
       require: true,
     },
+    members: {
+      type: String,
+      require: true,
+      default: 1,
+    },
     ownerID: {
       type: Schema.Types.ObjectId,
       ref: "Landlord",

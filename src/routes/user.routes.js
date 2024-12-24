@@ -8,7 +8,6 @@ import {
   landlordRegister,
   loginUser,
   logoutUser,
-  refreshAccessToken,
   registerSeeker,
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
