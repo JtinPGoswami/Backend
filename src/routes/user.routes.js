@@ -20,6 +20,10 @@ import {
   updateProfilePic,
   updateUser,
 } from "../controllers/user.update.controller.js";
+import {
+  updateRoomDetails,
+  updateRoomImages,
+} from "../controllers/room.update.controller.js";
 const router = Router();
 
 router
@@ -57,5 +61,15 @@ router
 router
   .route("/listed-room")
   .post(verifyJWT, isLandLord, FindListedRoomByLandLord);
+
+router.route("/update-room").post(verifyJWT, isLandLord, updateRoomDetails);
+router
+  .route("/update-room/images")
+  .post(
+    verifyJWT,
+    isLandLord,
+    upload.fields([{ name: "roomImages", maxCount: 5 }]),
+    updateRoomImages
+  );
 
 export default router;

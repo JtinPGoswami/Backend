@@ -69,7 +69,7 @@ const RoomSchema = new Schema(
       type: Boolean,
       require: true,
     },
-    members: {
+    people: {
       type: String,
       require: true,
       default: 1,

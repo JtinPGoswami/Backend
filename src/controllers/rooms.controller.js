@@ -15,12 +15,14 @@ const ListRooms = asyncHandler(async (req, res) => {
     address,
     pincode,
     suitableFor,
+    people,
     rent,
     advance,
     discount,
     features,
     availability,
   } = req.body;
+  console.log("people", people);
 
   const isRoom = await Room.findOne({ location, address });
 
@@ -41,6 +43,7 @@ const ListRooms = asyncHandler(async (req, res) => {
       address,
       pincode,
       suitableFor,
+      people,
       rent,
       availability,
     ].some(
@@ -81,6 +84,7 @@ const ListRooms = asyncHandler(async (req, res) => {
     address,
     pincode,
     suitableFor,
+    people,
     rent,
     advance,
     discount,
