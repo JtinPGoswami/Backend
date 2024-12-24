@@ -115,4 +115,17 @@ const FindListedRoomByLandLord = asyncHandler(async (req, res) => {
   }
   res.status(200).json(new apiRes(200, rooms));
 });
-export { ListRooms, FindListedRoomByLandLord };
+
+const deletListedRoomByLandLord = asyncHandler(async (req, res) => {
+  const { roomId } = req.body;
+  if (!roomId) {
+    throw new apiError(404, "Room Id not found");
+  }
+
+  const deletedRoom = await Room.findByIdAndDelete(roomId);
+
+  res
+    .status(200)
+    .json(new apiRes(200, deletedRoom, "Room deleted successfully "));
+});
+export { ListRooms, FindListedRoomByLandLord, deletListedRoomByLandLord };

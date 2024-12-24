@@ -12,6 +12,7 @@ import {
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
+  deletListedRoomByLandLord,
   FindListedRoomByLandLord,
   ListRooms,
 } from "../controllers/rooms.controller.js";
@@ -48,8 +49,11 @@ router
   .route("/update-profilepic")
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
+//user related routes
 router.route("/current-user").post(verifyJWT, getCurrentUser);
 router.route("/get-user").post(verifyJWT, getUserById);
+
+//room related routes
 router
   .route("/list-room")
   .post(
@@ -71,5 +75,8 @@ router
     upload.fields([{ name: "roomImages", maxCount: 5 }]),
     updateRoomImages
   );
+router
+  .route("/delete-room")
+  .post(verifyJWT, isLandLord, deletListedRoomByLandLord);
 
 export default router;
