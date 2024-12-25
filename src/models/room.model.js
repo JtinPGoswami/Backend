@@ -74,6 +74,10 @@ const RoomSchema = new Schema(
       require: true,
       default: 1,
     },
+    phone: {
+      type: String,
+      require: true,
+    },
     ownerID: {
       type: Schema.Types.ObjectId,
       ref: "Landlord",
@@ -84,5 +88,16 @@ const RoomSchema = new Schema(
     timestamps: true,
   }
 );
-
+RoomSchema.pre("save", async function (next) {
+  const room = this;
+  const phoneRegex = /^[6-9]\d{9}$/;
+  if (room.phone && !phoneRegex.test(room.phone)) {
+    return next(
+      new apiError(
+        400,
+        "Phone number must start with 6-9 and be 10 digits long"
+      )
+    );
+  }
+});
 export const Room = mongoose.model("Room", RoomSchema);

@@ -78,6 +78,16 @@ RoomSeekerSchema.pre("save", async function (next) {
     return next(new apiError(400, "Username must be at least 5 characters"));
   }
 
+  const phoneRegex = /^[6-9]\d{9}$/;
+  if (seeker.phone && !phoneRegex.test(seeker.phone)) {
+    return next(
+      new apiError(
+        400,
+        "Phone number must start with 6-9 and be 10 digits long"
+      )
+    );
+  }
+
   if (!this.isModified("password")) return next();
 
   this.password = await bcrypt.hash(this.password, 10);

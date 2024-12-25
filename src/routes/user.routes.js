@@ -4,11 +4,13 @@ import { upload } from "../middlewares/multer.middleware.js";
 // import { registerAdmin } from "../controllers/admin.controller.js";
 import {
   getCurrentUser,
+  getLandLords,
   getUserById,
   landlordRegister,
   loginUser,
   logoutUser,
   registerSeeker,
+  viewListedRoomByUser,
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
@@ -53,6 +55,7 @@ router
 //user related routes
 router.route("/current-user").post(verifyJWT, getCurrentUser);
 router.route("/get-user").post(verifyJWT, getUserById);
+router.route("/get/landlords").post(getLandLords);
 
 //room related routes
 router
@@ -80,6 +83,7 @@ router
   .route("/delete-room")
   .post(verifyJWT, isLandLord, deletListedRoomByLandLord);
 
+router.route("/get/landlord/rooms").post(viewListedRoomByUser);
 router.route("/get/all/rooms").post(getAllRooms);
 
 export default router;

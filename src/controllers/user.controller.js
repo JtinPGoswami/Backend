@@ -11,6 +11,7 @@ import {
   findUserByIdAndRemoveSensitiveInfo,
 } from "../utils/findUserInDB.js";
 import { Admin } from "../models/admin.model.js";
+import { Room } from "../models/room.model.js";
 const registerSeeker = asyncHandler(async (req, res) => {
   //get user details from frontend
   //validation not empty
@@ -234,6 +235,29 @@ const getUserById = async (req, res) => {
   res.status(200).json(new apiRes(200, user, "user fatched successfully "));
 };
 
+const getLandLords = async (req, res) => {
+  const LandLords = await LandLord.find({});
+  if (!LandLords) {
+    throw new apiError(404, "LandLord not found");
+  }
+  console.log(LandLords);
+
+  res
+    .status(200)
+    .json(new apiRes(200, LandLords, "LandLords fatch successfully "));
+};
+
+const viewListedRoomByUser = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    throw new apiError(400, "User ID is required");
+  }
+  const rooms = await Room.find({ ownerID: userId });
+  if (!rooms || rooms.length === 0) {
+    throw new apiError(404, "No rooms found for this user");
+  }
+  res.status(200).json(new apiRes(200, rooms, "Rooms fetched successfully"));
+});
 export {
   landlordRegister,
   registerSeeker,
@@ -241,4 +265,6 @@ export {
   logoutUser,
   getCurrentUser,
   getUserById,
+  getLandLords,
+  viewListedRoomByUser,
 };

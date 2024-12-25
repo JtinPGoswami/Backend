@@ -22,6 +22,7 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
     advance,
     discount,
     features,
+    phone,
     availability,
     _id,
   } = req.body;
@@ -40,6 +41,7 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
       advance,
       discount,
       features,
+      phone,
       availability,
       _id,
     ].some(
@@ -69,6 +71,7 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
   room.advance = advance;
   room.discount = discount;
   room.features = features;
+  room.phone = phone;
   room.availability = availability;
 
   const updatedRoom = await room.save({ validateBeforeSave: false });

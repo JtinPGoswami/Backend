@@ -199,16 +199,4 @@ const getAllUsers = asyncHandler(async (req, res) => {
   res.status(200).json(new apiRes(200, users, "users fatched successfully "));
 });
 
-const viewListedRoomByUser = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
-  if (!userId) {
-    throw new apiError(400, "User ID is required");
-  }
-  const rooms = await Room.find({ ownerID: userId });
-  if (!rooms || rooms.length === 0) {
-    throw new apiError(404, "No rooms found for this user");
-  }
-  res.status(200).json(new apiRes(200, rooms, "Rooms fetched successfully"));
-});
-
-export { deleteRoomById, deleteUserById, getAllUsers, viewListedRoomByUser };
+export { deleteRoomById, deleteUserById, getAllUsers };
