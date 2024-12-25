@@ -139,13 +139,47 @@ const deletListedRoomByLandLord = asyncHandler(async (req, res) => {
 });
 
 const getAllRooms = asyncHandler(async (req, res) => {
-  const rooms = await Room.find({});
-  if (!rooms) {
-    throw new apiError(404, "rooms not found");
-  }
+  try {
+    // Fetch all rooms
+    const rooms = await Room.find({});
+    if (!rooms || rooms.length === 0) {
+      throw new apiError(404, "Rooms not found");
+    }
 
-  res.status(200).json(new apiRes(200, rooms, "rooms fatchd successfully"));
+    // Fetch owners for each room
+    const roomsWithOwners = await Promise.all(
+      rooms.map(async (room) => {
+        // Ensure ownerId is handled as ObjectId
+        const ownerId = room.ownerID;
+        if (!ownerId) {
+          throw new apiError(404, `Room with ID ${room._id} has no ownerId`);
+        }
+
+        const owner = await LandLord.findById(ownerId);
+        if (!owner) {
+          throw new apiError(
+            404,
+            `Owner not found for room with ID: ${room._id}`
+          );
+        }
+
+        // Return room with owner data
+        return { ...room.toObject(), owner: owner.toObject() };
+      })
+    );
+
+    // Respond with rooms and their owners
+    res
+      .status(200)
+      .json(new apiRes(200, roomsWithOwners, "Rooms fetched successfully"));
+  } catch (error) {
+    console.error("Error in getAllRooms:", error.message);
+    res
+      .status(error.statusCode || 500)
+      .json(new apiRes(error.statusCode || 500, null, error.message));
+  }
 });
+
 export {
   ListRooms,
   FindListedRoomByLandLord,
