@@ -36,7 +36,7 @@ const verifyJWT = asyncHandler(async (req, _, next) => {
     next();
   } catch (error) {
     console.error("Error in verifyJWT Middleware:", error.message);
-    throw new apiError(401, error?.message || "Unauthorized request");
+    throw new apiError(401, error?.message || "Unauthorized request token");
   }
 });
 
@@ -44,33 +44,42 @@ const isLandLord = asyncHandler(async (req, _, next) => {
   req.user;
   try {
     if (req.user.role !== "landlord") {
-      throw new apiError(401, "Unauthorized request");
+      throw new apiError(401, "Unauthorized request from landlord");
     }
     next();
   } catch (error) {
-    throw new apiError(401, error?.masssage || "Unauthorized request ");
+    throw new apiError(
+      401,
+      error?.masssage || "Unauthorized request from landlord "
+    );
   }
 });
 
 const isSeeker = asyncHandler(async (req, _, next) => {
   try {
     if (req.user.role !== "seeker") {
-      throw new apiError(401, "Unauthorized request");
+      throw new apiError(401, "Unauthorized request from seeker");
     }
     next();
   } catch (error) {
-    throw new apiError(401, error?.masssage || "Unauthorized request");
+    throw new apiError(
+      401,
+      error?.masssage || "Unauthorized request from seeker"
+    );
   }
 });
 
 const isAdmin = asyncHandler(async (req, _, next) => {
   try {
     if (req.user.role !== "admin") {
-      throw new apiError(401, "Unauthorized request");
+      throw new apiError(401, "Unauthorized request from admin");
     }
     next();
   } catch (error) {
-    throw new apiError(401, error?.masssage || "Unauthorized request");
+    throw new apiError(
+      401,
+      error?.masssage || "Unauthorized request from admin"
+    );
   }
 });
 
