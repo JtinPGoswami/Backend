@@ -14,6 +14,7 @@ import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   deletListedRoomByLandLord,
   FindListedRoomByLandLord,
+  getAllRooms,
   ListRooms,
 } from "../controllers/rooms.controller.js";
 import {
@@ -78,5 +79,7 @@ router
 router
   .route("/delete-room")
   .post(verifyJWT, isLandLord, deletListedRoomByLandLord);
+
+router.route("/get/all/rooms").post(getAllRooms);
 
 export default router;

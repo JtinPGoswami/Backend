@@ -86,14 +86,11 @@ const deleteRoomById = asyncHandler(async (req, res) => {
   landlord.rooms = landlord.rooms.filter((room) => room.toString() !== roomId);
   await landlord.save({ validateBeforeSave: false });
 
-  const RoomToDelete = await Room.find({ ownerID: userId });
+  const RoomToDelete = await Room.findById(roomId);
   if (!RoomToDelete) {
     throw new apiError(404, "Room not found for deletion");
   }
 
-  console.log("Room found for deletion: ", RoomToDelete);
-
-  // Delete images from Cloudinary (if any)
   const images = RoomToDelete.photos;
   const deletePromises = images.map((url) => {
     const urlParts = url.split("/");
@@ -202,14 +199,6 @@ const getAllUsers = asyncHandler(async (req, res) => {
   res.status(200).json(new apiRes(200, users, "users fatched successfully "));
 });
 
-const getAllRoom = asyncHandler(async (req, res) => {
-  const rooms = await Room.find({});
-  if (!rooms) {
-    throw new apiError(404, "Rooms not found ");
-  }
-  res.status(200).json(new apiRes(200, rooms, "Rooms fatched successfully "));
-});
-
 const viewListedRoomByUser = asyncHandler(async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -222,10 +211,4 @@ const viewListedRoomByUser = asyncHandler(async (req, res) => {
   res.status(200).json(new apiRes(200, rooms, "Rooms fetched successfully"));
 });
 
-export {
-  deleteRoomById,
-  deleteUserById,
-  getAllRoom,
-  getAllUsers,
-  viewListedRoomByUser,
-};
+export { deleteRoomById, deleteUserById, getAllUsers, viewListedRoomByUser };
