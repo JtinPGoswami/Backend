@@ -10,7 +10,7 @@ import { findUserById, findUserByIdAndDelete } from "../utils/findUserInDB.js";
 import { Room } from "../models/room.model.js";
 import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { LandLord } from "../models/landlord.model.js";
-
+import mongoose from "mongoose";
 // const registerAdmin = asyncHandler(async (req, res) => {
 //   //get user details from frontend
 //   //validation not empty
@@ -70,20 +70,31 @@ import { LandLord } from "../models/landlord.model.js";
 // });
 
 const deleteRoomById = asyncHandler(async (req, res) => {
-  const { roomId, massage } = req.body;
-  console.log("from backend ", roomId);
+  const { roomId, message, userId } = req.body;
 
-  if (!roomId) {
-    throw new apiError(404, "Room id not found");
+  const landlord = await LandLord.findById(userId);
+  if (!landlord) {
+    throw new apiError(404, "Landlord not found");
   }
 
-  const RoomToDelete = await Room.findById(roomId);
+  console.log("Landlord found: ", landlord);
+
+  if (!landlord.rooms.includes(roomId)) {
+    throw new apiError(404, "Room not listed under this landlord");
+  }
+
+  landlord.rooms = landlord.rooms.filter((room) => room.toString() !== roomId);
+  await landlord.save({ validateBeforeSave: false });
+
+  const RoomToDelete = await Room.find({ ownerID: userId });
   if (!RoomToDelete) {
     throw new apiError(404, "Room not found for deletion");
   }
 
-  const images = RoomToDelete.photos;
+  console.log("Room found for deletion: ", RoomToDelete);
 
+  // Delete images from Cloudinary (if any)
+  const images = RoomToDelete.photos;
   const deletePromises = images.map((url) => {
     const urlParts = url.split("/");
     const fileNameWithExtension = urlParts[urlParts.length - 1];
@@ -100,62 +111,82 @@ const deleteRoomById = asyncHandler(async (req, res) => {
     throw new apiError(500, "Failed to delete images from Cloudinary");
   }
 
-  const deletedRoom = await Room.findByIdAndDelete(roomId);
+  const deletedRoom = await Room.findByIdAndDelete(RoomToDelete._id);
   if (!deletedRoom) {
-    throw new apiError(500, "something went wrong while deleting the room");
+    throw new apiError(500, "Something went wrong while deleting the room");
+  }
+
+  console.log("Room deleted successfully: ", deletedRoom);
+
+  res
+    .status(200)
+    .json(new apiRes(200, deletedRoom, "Room deletion successful"));
+});
+
+const deleteUserById = asyncHandler(async (req, res) => {
+  const { userId } = req.body; // Assume userId is passed in params for deletion
+
+  // Find the landlord by userId
+  const landlord = await LandLord.findById(userId);
+  if (!landlord) {
+    throw new apiError(404, "Landlord not found");
+  }
+
+  // Log the landlord data to verify it
+  console.log("Landlord found: ", landlord);
+
+  // Delete all rooms associated with the landlord
+  const rooms = await Room.find({ ownerID: userId }); // Get all rooms belonging to this landlord
+  console.log(rooms, userId);
+  if (rooms.length > 0) {
+    // Log rooms to verify them before deleting
+    console.log("Rooms found: ", rooms);
+
+    // Delete images from Cloudinary for all rooms before deletion
+    const deletePromises = rooms.map((room) => {
+      const images = room.photos;
+      return images.map((url) => {
+        const urlParts = url.split("/");
+        const fileNameWithExtension = urlParts[urlParts.length - 1];
+        const fileName = fileNameWithExtension.split(".")[0];
+        const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
+        const publicIdArray = shortFileName.split("/");
+        const publicId = publicIdArray[1];
+        deletFileFromCloudinary(publicId); // Assume deletFileFromCloudinary is a function to delete images
+      });
+    });
+
+    // Wait for all the delete promises to resolve
+    try {
+      await Promise.all(deletePromises.flat()); // Flatten the array of promises
+    } catch (error) {
+      throw new apiError(500, "Failed to delete images from Cloudinary");
+    }
+
+    // Now delete all rooms
+    await Room.deleteMany({ ownerID: userId }); // Delete rooms associated with this landlord
+    console.log("Rooms deleted successfully");
+  }
+
+  // Remove the rooms reference from the landlord's document (Optional, if needed)
+  landlord.rooms = [];
+  await landlord.save();
+
+  // Finally, delete the landlord
+  const deletedLandlord = await LandLord.findByIdAndDelete(userId);
+  if (!deletedLandlord) {
+    throw new apiError(500, "Error occurred while deleting the landlord");
   }
 
   res
     .status(200)
     .json(
-      new apiRes(200, { deletedRoom, massage }, "Room deleted successfully ")
+      new apiRes(
+        200,
+        deletedLandlord,
+        "Landlord and their rooms deleted successfully"
+      )
     );
-});
-
-const deleteUserById = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
-  console.log("userId", userId);
-
-  // Find the user to delete
-  const userToDelete = await findUserById(userId);
-  if (!userToDelete) {
-    throw new apiError(404, "User not found");
-  }
-
-  const oldProfilePic = userToDelete.ProfilePic;
-  if (oldProfilePic) {
-    const urlParts = oldProfilePic.split("/");
-    const fileNameWithExtension = urlParts[urlParts.length - 1];
-    const fileName = fileNameWithExtension.split(".")[0];
-    const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
-    const publicIdArray = shortFileName.split("/");
-    const publicId = publicIdArray[1];
-    await deletFileFromCloudinary(publicId);
-  }
-  let roomDeletionPromises = [];
-  if (userToDelete.rooms) {
-    roomDeletionPromises = userToDelete.rooms.map(async (roomId) => {
-      try {
-        const roomDeletionMessage = `Room deleted as part of user deletion.`;
-        await deleteRoomById({
-          body: { roomId, massage: roomDeletionMessage },
-        });
-      } catch (error) {
-        console.error(`Error deleting room with ID ${roomId}:`, error);
-      }
-    });
-  }
-
-  await Promise.all(roomDeletionPromises);
-
-  const deletedUser = await findUserByIdAndDelete(userId);
-  if (!deletedUser) {
-    throw new apiError(500, "Failed to delete user");
-  }
-
-  res
-    .status(200)
-    .json(new apiRes(200, { deletedUser }, "User deleted successfully"));
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {

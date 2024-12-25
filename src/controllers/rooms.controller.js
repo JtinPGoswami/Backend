@@ -118,9 +118,18 @@ const FindListedRoomByLandLord = asyncHandler(async (req, res) => {
 
 const deletListedRoomByLandLord = asyncHandler(async (req, res) => {
   const { roomId } = req.body;
+  const user = req.user;
+
   if (!roomId) {
     throw new apiError(404, "Room Id not found");
   }
+  const landlord = await LandLord.findById(user._id);
+  if (!landlord) {
+    throw new apiError(404, "Landlord not found");
+  }
+  landlord.rooms = landlord.rooms.filter((room) => room.toString() !== roomId);
+
+  landlord.save({ validateBeforeSave: false });
 
   const deletedRoom = await Room.findByIdAndDelete(roomId);
 
