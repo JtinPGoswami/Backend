@@ -26,7 +26,7 @@ import mongoose from "mongoose";
 //   const { email, password, username, name } = req.body;
 
 //   if ([email, password, username, name].some((item) => item?.trim() === "")) {
-//     throw new apiError(400, "All fileds are reuqire");
+//     throw new apiError(400, "All fileds are require");
 //   }
 
 //   const existedUser = await Admin.findOne({
@@ -189,7 +189,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     throw new apiError(404, "laldlord not found");
   }
   const users = [...seeker, ...landlord];
-  res.status(200).json(new apiRes(200, users, "users fatched successfully "));
+  res.status(200).json(new apiRes(200, users, "users fetched successfully "));
 });
 
 export { deleteRoomById, deleteUserById, getAllUsers };

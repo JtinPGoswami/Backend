@@ -28,7 +28,7 @@ const ListRooms = asyncHandler(async (req, res) => {
   if (isRoom) {
     throw new apiError(
       409,
-      "Land with the same location and address is already present"
+      "A room with the same location and address already exists"
     );
   }
 
@@ -52,7 +52,10 @@ const ListRooms = asyncHandler(async (req, res) => {
         (typeof item === "string" && item.trim() === "")
     )
   ) {
-    throw new apiError(400, "All fields are required");
+    throw new apiError(
+      400,
+      "All fields are required.Please ensure no fields are left empty "
+    );
   }
 
   if (
@@ -62,7 +65,7 @@ const ListRooms = asyncHandler(async (req, res) => {
   ) {
     throw new apiError(
       400,
-      "At least one image of the room is required for listing"
+      "Please upload at lease one image to list the room."
     );
   }
 
@@ -94,14 +97,14 @@ const ListRooms = asyncHandler(async (req, res) => {
   });
 
   if (!createdRoom) {
-    throw new apiError(500, "Room listing failed, please try again");
+    throw new apiError(500, "Room listing failed. Please try again la");
   }
 
-  const LoggedinUser = await LandLord.findById(req.user._id);
+  const loggedinUser = await LandLord.findById(req.user._id);
 
-  LoggedinUser.rooms.push(createdRoom._id);
+  loggedinUser.rooms.push(createdRoom._id);
 
-  LoggedinUser.save({ validateBeforeSave: false });
+  loggedinUser.save({ validateBeforeSave: false });
 
   res.status(200).json(new apiRes(200, "Room listed successfully"));
 });
@@ -110,7 +113,7 @@ const FindListedRoomByLandLord = asyncHandler(async (req, res) => {
   const { ownerID } = req.body;
   const rooms = await Room.find({ ownerID });
   if (!rooms) {
-    throw new apiError(404, "No Room listed by you ");
+    throw new apiError(404, "No rooms listed by you ");
   }
   res.status(200).json(new apiRes(200, rooms));
 });
@@ -120,7 +123,7 @@ const deletListedRoomByLandLord = asyncHandler(async (req, res) => {
   const user = req.user;
 
   if (!roomId) {
-    throw new apiError(404, "Room Id not found");
+    throw new apiError(404, "Room ID not found");
   }
   const landlord = await LandLord.findById(user._id);
   if (!landlord) {
@@ -134,7 +137,7 @@ const deletListedRoomByLandLord = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new apiRes(200, deletedRoom, "Room deleted successfully "));
+    .json(new apiRes(200, deletedRoom, "Room deleted successfully."));
 });
 
 const getAllRooms = asyncHandler(async (req, res) => {
@@ -142,7 +145,7 @@ const getAllRooms = asyncHandler(async (req, res) => {
     // Fetch all rooms
     const rooms = await Room.find({});
     if (!rooms || rooms.length === 0) {
-      throw new apiError(404, "Rooms not found");
+      throw new apiError(404, "No rooms found");
     }
 
     // Fetch owners for each room
@@ -151,14 +154,17 @@ const getAllRooms = asyncHandler(async (req, res) => {
         // Ensure ownerId is handled as ObjectId
         const ownerId = room.ownerID;
         if (!ownerId) {
-          throw new apiError(404, `Room with ID ${room._id} has no ownerId`);
+          throw new apiError(
+            404,
+            `The room with ID ${room._id} has no associated ownerId`
+          );
         }
 
         const owner = await LandLord.findById(ownerId);
         if (!owner) {
           throw new apiError(
             404,
-            `Owner not found for room with ID: ${room._id}`
+            `The owner was not found for room with ID: ${room._id}`
           );
         }
 
@@ -170,9 +176,9 @@ const getAllRooms = asyncHandler(async (req, res) => {
     // Respond with rooms and their owners
     res
       .status(200)
-      .json(new apiRes(200, roomsWithOwners, "Rooms fetched successfully"));
+      .json(new apiRes(200, roomsWithOwners, "Rooms retrieved successfully"));
   } catch (error) {
-    console.error("Error in getAllRooms:", error.message);
+    console.error("Error in getting all rooms:", error.message);
     res
       .status(error.statusCode || 500)
       .json(new apiRes(error.statusCode || 500, null, error.message));

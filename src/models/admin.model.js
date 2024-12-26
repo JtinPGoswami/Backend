@@ -54,7 +54,9 @@ AdminSchema.pre("save", async function (next) {
   }
 
   if (admin.password && admin.password.length < 8) {
-    return next(new apiError(400, "Password must be at least 8 characters"));
+    return next(
+      new apiError(400, "Password must be at least 8 characters long")
+    );
   }
 
   if (admin.username && admin.username.length < 5) {

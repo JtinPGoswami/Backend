@@ -32,7 +32,7 @@ const registerSeeker = asyncHandler(async (req, res) => {
       (item) => typeof item !== "string" || item.trim() === ""
     )
   ) {
-    throw new apiError(400, "All fileds are reuqire");
+    throw new apiError(400, "All fileds are reuqired");
   }
 
   const existedUser = await RoomSeeker.findOne({
@@ -95,7 +95,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
       (item) => typeof item === "string" && item.trim() === ""
     )
   ) {
-    throw new apiError(400, "All fileds are require");
+    throw new apiError(400, "All fileds are required");
   }
 
   const landOwner = await LandLord.findOne({
@@ -103,7 +103,10 @@ const landlordRegister = asyncHandler(async (req, res) => {
   });
 
   if (landOwner) {
-    throw new apiError(409, "user with Username or email is already exists");
+    throw new apiError(
+      409,
+      "User with the same username or email already exists"
+    );
   }
 
   let ProfilePicLocalPath;
@@ -132,7 +135,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
     "-password "
   );
   if (!createLandLord) {
-    throw new apiError(500, "something went wrong while registring user");
+    throw new apiError(500, "Something went wrong while registering the  user");
   }
 
   res
@@ -164,7 +167,7 @@ const genrateAccessToken = async (userId) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
   if (!username) {
-    throw new apiError(400, " username require");
+    throw new apiError(400, " username required");
   }
   let user = await RoomSeeker.findOne({ username });
   if (!user) {
@@ -227,23 +230,23 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = async (req, res) => {
-  res.status(200).json(new apiRes(200, req.user, "current user is fatched"));
+  res.status(200).json(new apiRes(200, req.user, "current user is fetched"));
 };
 const getUserById = async (req, res) => {
   const { userId } = req.body;
   const user = await findUserByIdAndRemoveSensitiveInfo(userId);
-  res.status(200).json(new apiRes(200, user, "user fatched successfully "));
+  res.status(200).json(new apiRes(200, user, "user fetched successfully "));
 };
 
 const getLandLords = async (req, res) => {
   const LandLords = await LandLord.find({});
   if (!LandLords) {
-    throw new apiError(404, "LandLord not found");
+    throw new apiError(404, "Landlord not found");
   }
 
   res
     .status(200)
-    .json(new apiRes(200, LandLords, "LandLords fatch successfully "));
+    .json(new apiRes(200, LandLords, "Landlords fetched successfully "));
 };
 
 const viewListedRoomByUser = asyncHandler(async (req, res) => {

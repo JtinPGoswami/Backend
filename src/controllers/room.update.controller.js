@@ -54,7 +54,7 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
 
   const room = await Room.findById(_id);
   if (!room) {
-    throw new apiError(404, "user not found");
+    throw new apiError(404, "Room not found");
   }
   room.title = title;
   room.description = description;
@@ -69,7 +69,6 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
   room.advance = advance;
   room.discount = discount;
   room.features = features;
-  room.phone = phone;
   room.availability = availability;
 
   const updatedRoom = await room.save({ validateBeforeSave: false });

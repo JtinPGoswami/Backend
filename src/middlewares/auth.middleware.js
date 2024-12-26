@@ -44,42 +44,33 @@ const isLandLord = asyncHandler(async (req, _, next) => {
   req.user;
   try {
     if (req.user.role !== "landlord") {
-      throw new apiError(401, "Unauthorized request from landlord");
+      throw new apiError(401, "Unauthorized request");
     }
     next();
   } catch (error) {
-    throw new apiError(
-      401,
-      error?.masssage || "Unauthorized request from landlord "
-    );
+    throw new apiError(401, error?.masssage || "Unauthorized request  ");
   }
 });
 
 const isSeeker = asyncHandler(async (req, _, next) => {
   try {
     if (req.user.role !== "seeker") {
-      throw new apiError(401, "Unauthorized request from seeker");
+      throw new apiError(401, "Unauthorized request ");
     }
     next();
   } catch (error) {
-    throw new apiError(
-      401,
-      error?.masssage || "Unauthorized request from seeker"
-    );
+    throw new apiError(401, error?.masssage || "Unauthorized request r");
   }
 });
 
 const isAdmin = asyncHandler(async (req, _, next) => {
   try {
     if (req.user.role !== "admin") {
-      throw new apiError(401, "Unauthorized request from admin");
+      throw new apiError(401, "Unauthorized request ");
     }
     next();
   } catch (error) {
-    throw new apiError(
-      401,
-      error?.masssage || "Unauthorized request from admin"
-    );
+    throw new apiError(401, error?.masssage || "Unauthorized request ");
   }
 });
 

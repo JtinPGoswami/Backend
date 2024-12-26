@@ -53,9 +53,9 @@ router
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
 //user related routes
-router.route("/current-user").post(verifyJWT, getCurrentUser);
-router.route("/get-user").post(verifyJWT, getUserById);
-router.route("/get/landlords").post(getLandLords);
+router.route("/current-user").get(verifyJWT, getCurrentUser);
+router.get("/get-user").post(verifyJWT, getUserById);
+router.route("/get/landlords").get(getLandLords);
 
 //room related routes
 router
@@ -83,7 +83,7 @@ router
   .route("/delete-room")
   .post(verifyJWT, isLandLord, deletListedRoomByLandLord);
 
-router.route("/get/landlord/rooms").post(viewListedRoomByUser);
-router.route("/get/all/rooms").post(getAllRooms);
+router.route("/get/landlord/rooms").get(viewListedRoomByUser);
+router.route("/get/all/rooms").get(getAllRooms);
 
 export default router;

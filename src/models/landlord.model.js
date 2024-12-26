@@ -66,11 +66,15 @@ LandLordSchema.pre("save", async function (next) {
   }
 
   if (landlord.password && landlord.password.length < 8) {
-    return next(new apiError(400, "Password must be at least 8 characters"));
+    return next(
+      new apiError(400, "Password must be at least 8 characters long")
+    );
   }
 
   if (landlord.username && landlord.username.length < 5) {
-    return next(new apiError(400, "Username must be at least 5 characters"));
+    return next(
+      new apiError(400, "Username must be at least 5 characters long")
+    );
   }
 
   const phoneRegex = /^[6-9]\d{9}$/;

@@ -17,15 +17,15 @@ const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
 
   if (!oldPassword || !newPassword || !confNewPassword) {
-    throw new apiError(400, "All fileds are require");
+    throw new apiError(400, "All fileds are required");
   }
   if (!(newPassword === confNewPassword)) {
-    throw new apiError(400, "password does not match");
+    throw new apiError(400, "password do not match");
   }
 
   const user = await findUserById(req.user._id);
   if (!user) {
-    throw new apiError(401, "Invalid Access Token");
+    throw new apiError(401, "Invalid access token");
   }
 
   const isPasswordCorrect = await user.isPasswordCorrect;
@@ -38,7 +38,7 @@ const updatePassword = asyncHandler(async (req, res) => {
 
   await user.save({ validateBeforeSave: false });
 
-  res.status(200).json(new apiRes(200, {}, "password change successfully"));
+  res.status(200).json(new apiRes(200, {}, "Password changed successfully"));
 });
 // const updateName = asyncHandler(async (req, res) => {
 //   const { name } = req.body;
@@ -64,12 +64,12 @@ const updateProfilePic = asyncHandler(async (req, res) => {
   const profiePicLocalPath = req.file.path;
 
   if (!profiePicLocalPath) {
-    throw new apiError(400, "profile pic is require for update");
+    throw new apiError(400, "Profile pic is required for update");
   }
 
   const user = await findUserById(req.user._id);
   if (!user) {
-    throw new apiError(404, "user not found");
+    throw new apiError(404, "User not found");
   }
   const oldProfilePic = user.ProfilePic;
 
@@ -86,7 +86,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new apiError(
       400,
-      "something went wrong while uploding file on coludinary"
+      "Something went wrong while uploding the file on Coludinary"
     );
   }
 
@@ -103,7 +103,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
       new apiRes(
         200,
         { newuser, deletedFile },
-        "profile pic updated successfully"
+        "Profile picture updated successfully"
       )
     );
 });
@@ -174,7 +174,7 @@ const updateUser = asyncHandler(async (req, res) => {
         (item) => typeof item === "string" && item.trim() === ""
       )
     ) {
-      throw new apiError(400, "All fileds are require");
+      throw new apiError(400, "All fileds are required");
     }
     const landOwner = await LandLord.findOne({
       $or: [{ username }, { email }],
@@ -222,6 +222,6 @@ const updateUser = asyncHandler(async (req, res) => {
 
     await admin.save({ validateBeforeSave: false });
   }
-  res.status(200).json(new apiRes(200, {}, "user found successfully"));
+  res.status(200).json(new apiRes(200, {}, "user updated successfully"));
 });
 export { updatePassword, updateUser, updateProfilePic };
