@@ -54,7 +54,7 @@ router
 
 //user related routes
 router.route("/current/user").get(verifyJWT, getCurrentUser);
-router.get("/get/user").post(verifyJWT, getUserById);
+router.route("/get/user").post(verifyJWT, getUserById);
 router.route("/get/landlords").get(getLandLords);
 
 //room related routes
