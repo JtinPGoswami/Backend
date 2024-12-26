@@ -77,8 +77,6 @@ const deleteRoomById = asyncHandler(async (req, res) => {
     throw new apiError(404, "Landlord not found");
   }
 
-  console.log("Landlord found: ", landlord);
-
   if (!landlord.rooms.includes(roomId)) {
     throw new apiError(404, "Room not listed under this landlord");
   }
@@ -113,8 +111,6 @@ const deleteRoomById = asyncHandler(async (req, res) => {
     throw new apiError(500, "Something went wrong while deleting the room");
   }
 
-  console.log("Room deleted successfully: ", deletedRoom);
-
   res
     .status(200)
     .json(new apiRes(200, deletedRoom, "Room deletion successful"));
@@ -130,14 +126,11 @@ const deleteUserById = asyncHandler(async (req, res) => {
   }
 
   // Log the landlord data to verify it
-  console.log("Landlord found: ", landlord);
 
   // Delete all rooms associated with the landlord
   const rooms = await Room.find({ ownerID: userId }); // Get all rooms belonging to this landlord
-  console.log(rooms, userId);
   if (rooms.length > 0) {
     // Log rooms to verify them before deleting
-    console.log("Rooms found: ", rooms);
 
     // Delete images from Cloudinary for all rooms before deletion
     const deletePromises = rooms.map((room) => {

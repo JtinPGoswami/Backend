@@ -20,10 +20,8 @@ const ListRooms = asyncHandler(async (req, res) => {
     advance,
     discount,
     features,
-    phone,
     availability,
   } = req.body;
-  console.log("people", people);
 
   const isRoom = await Room.findOne({ location, address });
 
@@ -46,7 +44,6 @@ const ListRooms = asyncHandler(async (req, res) => {
       suitableFor,
       people,
       rent,
-      phone,
       availability,
     ].some(
       (item) =>
@@ -91,7 +88,6 @@ const ListRooms = asyncHandler(async (req, res) => {
     advance,
     discount,
     features: featuresArray,
-    phone,
     availability,
     photos: uploadedImageUrls,
     ownerID: req.user._id,

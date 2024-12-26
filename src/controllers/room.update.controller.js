@@ -22,7 +22,6 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
     advance,
     discount,
     features,
-    phone,
     availability,
     _id,
   } = req.body;
@@ -41,7 +40,6 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
       advance,
       discount,
       features,
-      phone,
       availability,
       _id,
     ].some(

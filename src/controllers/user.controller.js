@@ -240,7 +240,6 @@ const getLandLords = async (req, res) => {
   if (!LandLords) {
     throw new apiError(404, "LandLord not found");
   }
-  console.log(LandLords);
 
   res
     .status(200)
@@ -252,11 +251,33 @@ const viewListedRoomByUser = asyncHandler(async (req, res) => {
   if (!userId) {
     throw new apiError(400, "User ID is required");
   }
+
   const rooms = await Room.find({ ownerID: userId });
   if (!rooms || rooms.length === 0) {
     throw new apiError(404, "No rooms found for this user");
   }
-  res.status(200).json(new apiRes(200, rooms, "Rooms fetched successfully"));
+  const roomsWithOwners = await Promise.all(
+    rooms.map(async (room) => {
+      const ownerId = room.ownerID;
+      if (!ownerId) {
+        throw new apiError(404, `Room with ID ${room._id} has no ownerId`);
+      }
+      const owner = await LandLord.findById(ownerId);
+      if (!owner) {
+        throw new apiError(
+          404,
+          `Owner not found for room with ID: ${room._id}`
+        );
+      }
+
+      // Return room with owner data
+      return { ...room.toObject(), owner: owner.toObject() };
+    })
+  );
+
+  res
+    .status(200)
+    .json(new apiRes(200, roomsWithOwners, "Rooms fetched successfully"));
 });
 export {
   landlordRegister,

@@ -15,12 +15,6 @@ import {
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
-  console.log(
-    "password is coming to the backend",
-    oldPassword,
-    newPassword,
-    confNewPassword
-  );
 
   if (!oldPassword || !newPassword || !confNewPassword) {
     throw new apiError(400, "All fileds are require");
@@ -68,7 +62,6 @@ const updatePassword = asyncHandler(async (req, res) => {
 
 const updateProfilePic = asyncHandler(async (req, res) => {
   const profiePicLocalPath = req.file.path;
-  console.log(profiePicLocalPath);
 
   if (!profiePicLocalPath) {
     throw new apiError(400, "profile pic is require for update");
