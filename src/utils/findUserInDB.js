@@ -1,7 +1,6 @@
 import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { LandLord } from "../models/landlord.model.js";
 import { Admin } from "../models/admin.model.js";
-import asyncHandler from "./asyncHandler.js";
 import { apiError } from "./apiError.js";
 
 const findUserById = async (userId) => {

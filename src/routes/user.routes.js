@@ -45,16 +45,16 @@ router
 //secure Routes
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
-router.route("/update-password").post(verifyJWT, updatePassword);
+router.route("/update/password").post(verifyJWT, updatePassword);
 router.route("/update-user").post(verifyJWT, updateUser);
 
 router
-  .route("/update-profilepic")
+  .route("/update/profilepic")
   .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
 //user related routes
-router.route("/current-user").get(verifyJWT, getCurrentUser);
-router.get("/get-user").post(verifyJWT, getUserById);
+router.route("/current/user").get(verifyJWT, getCurrentUser);
+router.get("/get/user").post(verifyJWT, getUserById);
 router.route("/get/landlords").get(getLandLords);
 
 //room related routes
@@ -80,7 +80,7 @@ router
     updateRoomImages
   );
 router
-  .route("/delete-room")
+  .route("/delete/room")
   .post(verifyJWT, isLandLord, deletListedRoomByLandLord);
 
 router.route("/get/landlord/rooms").get(viewListedRoomByUser);
