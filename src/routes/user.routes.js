@@ -46,7 +46,7 @@ router
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/update/password").post(verifyJWT, updatePassword);
-router.route("/update-user").post(verifyJWT, updateUser);
+router.route("/update/user").post(verifyJWT, updateUser);
 
 router
   .route("/update/profilepic")
@@ -59,7 +59,7 @@ router.route("/get/landlords").get(getLandLords);
 
 //room related routes
 router
-  .route("/list-room")
+  .route("/list/room")
   .post(
     verifyJWT,
     isLandLord,
@@ -67,12 +67,12 @@ router
     ListRooms
   );
 router
-  .route("/listed-room")
+  .route("/listed/room")
   .post(verifyJWT, isLandLord, FindListedRoomByLandLord);
 
-router.route("/update-room").post(verifyJWT, isLandLord, updateRoomDetails);
+router.route("/update/room").post(verifyJWT, isLandLord, updateRoomDetails);
 router
-  .route("/update-room/images")
+  .route("/update/room/images")
   .post(
     verifyJWT,
     isLandLord,
