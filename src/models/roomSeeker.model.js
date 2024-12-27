@@ -5,29 +5,29 @@ const RoomSeekerSchema = new Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
       unique: true,
     },
     password: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     username: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
       unique: true,
     },
     phone: {
       type: Number,
-      require: true,
+      required: true,
       trim: true,
       unique: true,
     },
@@ -39,23 +39,29 @@ const RoomSeekerSchema = new Schema(
     gender: {
       type: String,
       enum: ["male", "female", "other"],
-      require: true,
+      required: true,
     },
     age: {
       type: Number,
-      require: true,
+      required: true,
       min: 18,
     },
     profession: {
       type: String,
-      require: true,
+      required: true,
       enum: ["student", "professional", "family", "other"],
     },
     role: {
       type: String,
-      require: true,
+      required: true,
       enum: ["admin", "landlord", "seeker"],
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verficationToken: String,
+    verficationTokenExpiry: String,
   },
   {
     timestamps: true,

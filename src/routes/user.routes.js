@@ -10,6 +10,8 @@ import {
   loginUser,
   logoutUser,
   registerSeeker,
+  resendVerificationCode,
+  verifyEmail,
   viewListedRoomByUser,
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
@@ -54,7 +56,7 @@ router
 
 //user related routes
 router.route("/current/user").get(verifyJWT, getCurrentUser);
-router.route("/get/user").post(verifyJWT, getUserById);
+router.route("/get/user").post(getUserById);
 router.route("/get/landlords").get(getLandLords);
 
 //room related routes
@@ -83,7 +85,9 @@ router
   .route("/delete/room")
   .post(verifyJWT, isLandLord, deletListedRoomByLandLord);
 
-router.route("/get/landlord/rooms").get(viewListedRoomByUser);
+router.route("/get/landlord/rooms").post(viewListedRoomByUser);
 router.route("/get/all/rooms").get(getAllRooms);
 
+router.route("/verify/email").post(verifyEmail);
+router.route("/resend/var/code").post(resendVerificationCode);
 export default router;

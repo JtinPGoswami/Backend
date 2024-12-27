@@ -10,7 +10,6 @@ import { findUserById, findUserByIdAndDelete } from "../utils/findUserInDB.js";
 import { Room } from "../models/room.model.js";
 import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { LandLord } from "../models/landlord.model.js";
-import mongoose from "mongoose";
 // const registerAdmin = asyncHandler(async (req, res) => {
 //   //get user details from frontend
 //   //validation not empty
@@ -46,6 +45,11 @@ import mongoose from "mongoose";
 //   ) {
 //     profiePicLocalPath = req.file.profilePic.path;
 //   }
+
+// const verficationToken = Math.floor(
+//   100000 + Math.random() * 900000
+// ).toString();
+
 //   const profilePic = await uploadOnCloudinary(profiePicLocalPath);
 
 //   const user = await Admin.create({
@@ -55,8 +59,11 @@ import mongoose from "mongoose";
 //     username,
 //     ProfilePic: profilePic.url,
 //     role: "admin",
+// verficationToken,
+//     verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
 //   });
 
+// await sendVerificationEmail(user.email, verficationToken);
 //   const createdUser = await Admin.findById(user._id).select(
 //     "-password "
 //   );
@@ -119,64 +126,57 @@ const deleteRoomById = asyncHandler(async (req, res) => {
 const deleteUserById = asyncHandler(async (req, res) => {
   const { userId } = req.body; // Assume userId is passed in params for deletion
 
-  // Find the landlord by userId
-  const landlord = await LandLord.findById(userId);
-  if (!landlord) {
-    throw new apiError(404, "Landlord not found");
+  const user = await findUserById(userId);
+
+  if (!user) {
+    throw new apiError(404, "user not found");
   }
+  if (user.role === "landlord") {
+    const landlord = user;
 
-  // Log the landlord data to verify it
+    const rooms = await Room.find({ ownerID: userId }); // Get all rooms belonging to this landlord
+    if (rooms.length > 0) {
+      // Log rooms to verify them before deleting
 
-  // Delete all rooms associated with the landlord
-  const rooms = await Room.find({ ownerID: userId }); // Get all rooms belonging to this landlord
-  if (rooms.length > 0) {
-    // Log rooms to verify them before deleting
-
-    // Delete images from Cloudinary for all rooms before deletion
-    const deletePromises = rooms.map((room) => {
-      const images = room.photos;
-      return images.map((url) => {
-        const urlParts = url.split("/");
-        const fileNameWithExtension = urlParts[urlParts.length - 1];
-        const fileName = fileNameWithExtension.split(".")[0];
-        const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
-        const publicIdArray = shortFileName.split("/");
-        const publicId = publicIdArray[1];
-        deletFileFromCloudinary(publicId); // Assume deletFileFromCloudinary is a function to delete images
+      // Delete images from Cloudinary for all rooms before deletion
+      const deletePromises = rooms.map((room) => {
+        const images = room.photos;
+        return images.map((url) => {
+          const urlParts = url.split("/");
+          const fileNameWithExtension = urlParts[urlParts.length - 1];
+          const fileName = fileNameWithExtension.split(".")[0];
+          const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
+          const publicIdArray = shortFileName.split("/");
+          const publicId = publicIdArray[1];
+          deletFileFromCloudinary(publicId); // Assume deletFileFromCloudinary is a function to delete images
+        });
       });
-    });
 
-    // Wait for all the delete promises to resolve
-    try {
-      await Promise.all(deletePromises.flat()); // Flatten the array of promises
-    } catch (error) {
-      throw new apiError(500, "Failed to delete images from Cloudinary");
+      // Wait for all the delete promises to resolve
+      try {
+        await Promise.all(deletePromises.flat()); // Flatten the array of promises
+      } catch (error) {
+        throw new apiError(500, "Failed to delete images from Cloudinary");
+      }
+
+      // Now delete all rooms
+      await Room.deleteMany({ ownerID: userId }); // Delete rooms associated with this landlord
     }
 
-    // Now delete all rooms
-    await Room.deleteMany({ ownerID: userId }); // Delete rooms associated with this landlord
-    console.log("Rooms deleted successfully");
+    // Remove the rooms reference from the landlord's document (Optional, if needed)
+    landlord.rooms = [];
+    await landlord.save();
+
+    // Finally, delete the landlord
   }
 
-  // Remove the rooms reference from the landlord's document (Optional, if needed)
-  landlord.rooms = [];
-  await landlord.save();
-
-  // Finally, delete the landlord
-  const deletedLandlord = await LandLord.findByIdAndDelete(userId);
+  const deletedLandlord = await findUserByIdAndDelete(userId);
   if (!deletedLandlord) {
-    throw new apiError(500, "Error occurred while deleting the landlord");
+    throw new apiError(500, "Error occurred while deleting the user");
   }
-
   res
     .status(200)
-    .json(
-      new apiRes(
-        200,
-        deletedLandlord,
-        "Landlord and their rooms deleted successfully"
-      )
-    );
+    .json(new apiRes(200, deletedLandlord, "User deleted successfully"));
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {

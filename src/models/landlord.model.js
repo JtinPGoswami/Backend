@@ -51,6 +51,12 @@ const LandLordSchema = new Schema(
         },
       ],
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verficationToken: String,
+    verficationTokenExpiry: String,
   },
   {
     timestamps: true,

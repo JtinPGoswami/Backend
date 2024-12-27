@@ -39,6 +39,12 @@ const AdminSchema = new Schema(
       required: true,
       enum: ["admin", "landlord", "seeker"],
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verficationToken: String,
+    verficationTokenExpiry: String,
   },
   {
     timestamps: true,

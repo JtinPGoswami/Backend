@@ -9,9 +9,8 @@ import { findUserByIdAndRemoveSensitiveInfo } from "../utils/findUserInDB.js";
 const verifyJWT = asyncHandler(async (req, _, next) => {
   try {
     const token = req.cookies?.accessToken;
-
     if (!token) {
-      throw new apiError(401, "Unauthorized request: Token not found");
+      throw new apiError(401, "Unauthorized request: Token not found ");
     }
 
     let decodedToken;

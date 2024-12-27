@@ -7,11 +7,18 @@ import { apiRes } from "../utils/apiRes.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
+  findUserByEmail,
+  findUserByEmailAndRemoveSensitiveInfo,
   findUserById,
   findUserByIdAndRemoveSensitiveInfo,
+  findUserByOtp,
 } from "../utils/findUserInDB.js";
 import { Admin } from "../models/admin.model.js";
 import { Room } from "../models/room.model.js";
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../middlewares/email.js";
 const registerSeeker = asyncHandler(async (req, res) => {
   //get user details from frontend
   //validation not empty
@@ -53,6 +60,9 @@ const registerSeeker = asyncHandler(async (req, res) => {
     profiePicLocalPath = req.file.profilePic.path;
   }
   const profilePic = await uploadOnCloudinary(profiePicLocalPath);
+  const verficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
 
   const user = await RoomSeeker.create({
     name,
@@ -65,8 +75,11 @@ const registerSeeker = asyncHandler(async (req, res) => {
     profession,
     ProfilePic: profilePic.url,
     role: "seeker",
+    verficationToken,
+    verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
   });
 
+  await sendVerificationEmail(user.email, verficationToken);
   const createdUser = await RoomSeeker.findById(user._id).select("-password ");
   if (!createdUser) {
     throw new apiError(500, "Something went wrong while registring the user ");
@@ -119,7 +132,9 @@ const landlordRegister = asyncHandler(async (req, res) => {
   }
 
   const profilePic = await uploadOnCloudinary(ProfilePicLocalPath);
-
+  const verficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
   const landlord = await LandLord.create({
     name,
     email,
@@ -129,8 +144,11 @@ const landlordRegister = asyncHandler(async (req, res) => {
     ProfilePic: profilePic.url || "",
     rooms,
     role: "landlord",
+    verficationToken,
+    verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
   });
 
+  await sendVerificationEmail(user.email, verficationToken);
   const createLandLord = await LandLord.findById(landlord._id).select(
     "-password "
   );
@@ -164,6 +182,7 @@ const genrateAccessToken = async (userId) => {
     );
   }
 };
+
 const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
   if (!username) {
@@ -177,12 +196,15 @@ const loginUser = asyncHandler(async (req, res) => {
     user = await Admin.findOne({ username });
   }
 
-  // const user = await findUserByUsername({ username });
-
   if (!user) {
     throw new apiError(404, "user does not exist");
   }
 
+  if (user.role === "seeker") {
+    if (!user.isVerified) {
+      throw new apiError(401, "user's email is not verified");
+    }
+  }
   const validatePassword = await bcrypt.compare(password, user.password);
   if (!validatePassword) {
     throw new apiError(401, "invalid credentials");
@@ -216,6 +238,7 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
+
 const logoutUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
@@ -233,8 +256,11 @@ const getCurrentUser = async (req, res) => {
   res.status(200).json(new apiRes(200, req.user, "current user is fetched"));
 };
 const getUserById = async (req, res) => {
-  const { userId } = req.body;
-  const user = await findUserByIdAndRemoveSensitiveInfo(userId);
+  const { email } = req.body;
+  if (!email) {
+    throw new apiError(400, "invalid credentials");
+  }
+  const user = await findUserByEmailAndRemoveSensitiveInfo(email);
   res.status(200).json(new apiRes(200, user, "user fetched successfully "));
 };
 
@@ -282,6 +308,60 @@ const viewListedRoomByUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiRes(200, roomsWithOwners, "Rooms fetched successfully"));
 });
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { inputOtp } = req.body;
+
+  if (!inputOtp) {
+    throw new apiError(400, "otp is undefine");
+  }
+
+  const user = await findUserByOtp(inputOtp);
+  if (!user) {
+    throw new apiError(401, "invalid or wrong otp");
+  }
+
+  if (Date.now() > user.verficationTokenExpiry) {
+    throw new apiError(401, "otp has expired");
+  }
+
+  user.isVerified = true;
+  user.verficationToken = undefined;
+  user.verficationTokenExpiry = undefined;
+  user.save({ validateBeforeSave: false });
+  const verifiedUser = await findUserByIdAndRemoveSensitiveInfo(user._id);
+
+  await sendWelcomeEmail(user.email, user.name);
+  res
+    .status(200)
+    .json(new apiRes(200, verifiedUser, "email varified successfully"));
+});
+
+const resendVerificationCode = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new apiError(401, "invalid credentials");
+  }
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new apiError(404, `user not found for ${email}`);
+  }
+
+  const verficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
+  const verficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+
+  user.verficationToken = verficationToken;
+  user.verficationTokenExpiry = verficationTokenExpiry;
+  user.save({ validateBeforeSave: false });
+
+  await sendVerificationEmail(user.email, verficationToken);
+
+  res.status(200).json(new apiRes(200, {}, "email send successfully "));
+});
 export {
   landlordRegister,
   registerSeeker,
@@ -291,4 +371,6 @@ export {
   getUserById,
   getLandLords,
   viewListedRoomByUser,
+  verifyEmail,
+  resendVerificationCode,
 };
