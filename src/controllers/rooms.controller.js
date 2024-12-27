@@ -142,16 +142,13 @@ const deletListedRoomByLandLord = asyncHandler(async (req, res) => {
 
 const getAllRooms = asyncHandler(async (req, res) => {
   try {
-    // Fetch all rooms
     const rooms = await Room.find({});
     if (!rooms || rooms.length === 0) {
       throw new apiError(404, "No rooms found");
     }
 
-    // Fetch owners for each room
     const roomsWithOwners = await Promise.all(
       rooms.map(async (room) => {
-        // Ensure ownerId is handled as ObjectId
         const ownerId = room.ownerID;
         if (!ownerId) {
           throw new apiError(
@@ -168,12 +165,10 @@ const getAllRooms = asyncHandler(async (req, res) => {
           );
         }
 
-        // Return room with owner data
         return { ...room.toObject(), owner: owner.toObject() };
       })
     );
 
-    // Respond with rooms and their owners
     res
       .status(200)
       .json(new apiRes(200, roomsWithOwners, "Rooms retrieved successfully"));
