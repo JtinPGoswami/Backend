@@ -11,7 +11,9 @@ import {
   logoutUser,
   registerSeeker,
   resendVerificationCode,
+  sendPasswordVerificationCode,
   verifyEmail,
+  verifyEmailAndUpdatePassword,
   viewListedRoomByUser,
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
@@ -90,4 +92,8 @@ router.route("/get/all/rooms").get(getAllRooms);
 
 router.route("/verify/email").post(verifyEmail);
 router.route("/resend/var/code").post(resendVerificationCode);
+
+router.route("/send/pass/code").post(sendPasswordVerificationCode);
+router.route("/verify/pass/code").post(verifyEmailAndUpdatePassword);
+
 export default router;

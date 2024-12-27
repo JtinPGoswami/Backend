@@ -114,6 +114,19 @@ const findUserByOtp = async (otp) => {
   }
   return user;
 };
+const findUserByPassOtp = async (otp) => {
+  if (!otp) {
+    throw new apiError(401, "user id Invalid credentials");
+  }
+  let user = await RoomSeeker.findOne({ passwordVerficationToken: otp });
+  if (!user) {
+    user = await LandLord.findOne({ passwordVerficationToken: otp });
+  }
+  if (!user) {
+    user = await Admin.findOne({ passwordVerficationToken: otp });
+  }
+  return user;
+};
 export {
   findUserById,
   findUserByEmail,
@@ -122,5 +135,6 @@ export {
   findUserByEmailAndDelete,
   findUserByIdAndDelete,
   findUserByOtp,
+  findUserByPassOtp,
   findUserByEmailAndRemoveSensitiveInfo,
 };

@@ -62,6 +62,8 @@ const RoomSeekerSchema = new Schema(
     },
     verficationToken: String,
     verficationTokenExpiry: String,
+    passwordVerficationToken: String,
+    passwordVerficationTokenExpiry: String,
   },
   {
     timestamps: true,
