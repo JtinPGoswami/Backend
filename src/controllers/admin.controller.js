@@ -10,7 +10,10 @@ import { findUserById, findUserByIdAndDelete } from "../utils/findUserInDB.js";
 import { Room } from "../models/room.model.js";
 import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { LandLord } from "../models/landlord.model.js";
-import { sendRoomDeleteEmail } from "../middlewares/email.js";
+import {
+  sendRoomDeleteEmail,
+  sendUserDeleteEmail,
+} from "../middlewares/email.js";
 // const registerAdmin = asyncHandler(async (req, res) => {
 //   //get user details from frontend
 //   //validation not empty
@@ -137,7 +140,11 @@ const deleteRoomById = asyncHandler(async (req, res) => {
 });
 
 const deleteUserById = asyncHandler(async (req, res) => {
-  const { userId } = req.body; // Assume userId is passed in params for deletion
+  const { userId } = req.body;
+  if (!userId) {
+    throw new apiError(400, "invalid credentials");
+  }
+  console.log(userId, "from backend");
 
   const user = await findUserById(userId);
 
@@ -183,13 +190,16 @@ const deleteUserById = asyncHandler(async (req, res) => {
     // Finally, delete the landlord
   }
 
-  const deletedLandlord = await findUserByIdAndDelete(userId);
-  if (!deletedLandlord) {
-    throw new apiError(500, "Error occurred while deleting the user");
+  const deletedUser = await findUserByIdAndDelete(userId);
+  if (!deletedUser) {
+    throw new apiError(400, "Error occurred while deleting the user");
   }
+  console.log("frob controller", user.name, user.email);
+
+  await sendUserDeleteEmail(user.name, user.email);
   res
     .status(200)
-    .json(new apiRes(200, deletedLandlord, "User deleted successfully"));
+    .json(new apiRes(200, deletedUser, "User deleted successfully"));
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {

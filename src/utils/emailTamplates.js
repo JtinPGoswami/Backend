@@ -370,8 +370,6 @@ const User_Remove_Email_Template = `<!DOCTYPE html>
         Email: {userEmail}<br>
         Reason: suspicious activity.
       </div>
-      <p>As part of this action, your email has also been blocked, and you will no longer have access to our services.
-      </p>
       <p>If you believe this decision was made in error or have any questions, please contact us for clarification.</p>
       <a href="mailto:support@roomonrent.com" class="button">Contact Support</a>
     </div>
