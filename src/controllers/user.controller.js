@@ -339,7 +339,6 @@ const verifyEmail = asyncHandler(async (req, res) => {
 });
 const verifyEmailAndUpdatePassword = asyncHandler(async (req, res) => {
   const { otp, password } = req.body;
-  console.log("getting call form frontend");
 
   if (!otp || !password) {
     throw new apiError(400, "All fileds are required");

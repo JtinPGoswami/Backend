@@ -15,7 +15,7 @@ export const sendVerificationEmail = async (email, verificationCode) => {
     ), // html body
   });
 
-  console.log("Message sent: %s", info.messageId);
+  console.log("Message sent");
 };
 export const sendWelcomeEmail = async (email, name) => {
   const info = await transporter.sendMail({
@@ -26,5 +26,5 @@ export const sendWelcomeEmail = async (email, name) => {
     html: Welcome_Email_Template.replace("{name}", name), // html body
   });
 
-  console.log("Message sent: %s", info.messageId);
+  console.log("Message sent: ");
 };

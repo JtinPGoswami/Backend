@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
-
+import { apiError } from "../utils/apiError.js";
 const RoomSeekerSchema = new Schema(
   {
     name: {
@@ -75,28 +75,22 @@ RoomSeekerSchema.pre("save", async function (next) {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(seeker.email)) {
-    return next(new apiError(400, "Invalid email format"));
+    throw new apiError(400, "Invalid email format");
   }
 
   if (seeker.password && seeker.password.length < 8) {
-    return next(
-      new apiError(400, "Password must be at least 8 characters long")
-    );
+    throw new apiError(400, "Password must be at least 8 characters long");
   }
 
   if (seeker.username && seeker.username.length < 5) {
-    return next(
-      new apiError(400, "Username must be at least 5 characters long")
-    );
+    throw new apiError(400, "Username must be at least 5 characters long");
   }
 
   const phoneRegex = /^[6-9]\d{9}$/;
   if (seeker.phone && !phoneRegex.test(seeker.phone)) {
-    return next(
-      new apiError(
-        400,
-        "Phone number must start with 6-9 and be 10 digits long"
-      )
+    throw new apiError(
+      400,
+      "Phone number must start with 6-9 and be 10 digits long"
     );
   }
 
