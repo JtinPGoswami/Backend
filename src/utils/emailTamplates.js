@@ -169,4 +169,222 @@ const Welcome_Email_Template = `
   </html>
 `;
 
-export { Verification_Email_Template, Welcome_Email_Template };
+const Room_Remove_Email_Template = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reason for Room Deletion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .header {
+            background-color: #d9534f;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 25px;
+            line-height: 1.8;
+        }
+        .message {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #d9534f;
+            font-weight: bold;
+        }
+        .reason {
+            font-size: 16px;
+            color: #555;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            margin: 20px 0;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            padding: 15px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+        }
+        p {
+            margin: 0 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Reason for Room Deletion</div>
+        <div class="content">
+            <p>Hello {landlordName},</p>
+            <p class="message">We regret to inform you that your room titled "{roomTitle}" was removed by the admin. Here’s the reason:</p>
+            <div class="reason">
+                {deletionReason}
+            </div>
+            <p>If you have any questions or need further clarification, please feel free to contact our support team.</p>
+            <p>Thank you for using Room On Rent.</p>
+            <a href="mailto:support@roomonrent.com" class="button">Contact Support</a>
+        </div>
+        <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Room On Rent. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+
+`;
+
+const User_Remove_Email_Template = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Removal Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+
+    .header {
+      background-color: #d9534f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .content {
+      padding: 25px;
+      line-height: 1.8;
+    }
+
+    .message {
+      font-size: 18px;
+      margin: 20px 0;
+      color: #d9534f;
+      font-weight: bold;
+    }
+
+    .details {
+      font-size: 16px;
+      color: #555;
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 12px 25px;
+      margin: 20px 0;
+      background-color: #007BFF;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    .footer {
+      background-color: #f4f4f4;
+      padding: 15px;
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+      border-top: 1px solid #ddd;
+    }
+
+    p {
+      margin: 0 0 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">Account Removed</div>
+    <div class="content">
+      <p>Hello {userName},</p>
+      <p class="message">We regret to inform you that your account has been removed from our platform.</p>
+      <p>Details:</p>
+      <div class="details">
+        Email: {userEmail}<br>
+        Reason: suspicious activity.
+      </div>
+      <p>As part of this action, your email has also been blocked, and you will no longer have access to our services.
+      </p>
+      <p>If you believe this decision was made in error or have any questions, please contact us for clarification.</p>
+      <a href="mailto:support@roomonrent.com" class="button">Contact Support</a>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} Room On Rent. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+
+</html>`;
+export {
+  Verification_Email_Template,
+  Welcome_Email_Template,
+  Room_Remove_Email_Template,
+  User_Remove_Email_Template,
+};

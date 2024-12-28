@@ -10,6 +10,7 @@ import { findUserById, findUserByIdAndDelete } from "../utils/findUserInDB.js";
 import { Room } from "../models/room.model.js";
 import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { LandLord } from "../models/landlord.model.js";
+import { sendRoomDeleteEmail } from "../middlewares/email.js";
 // const registerAdmin = asyncHandler(async (req, res) => {
 //   //get user details from frontend
 //   //validation not empty
@@ -77,6 +78,8 @@ import { LandLord } from "../models/landlord.model.js";
 // });
 
 const deleteRoomById = asyncHandler(async (req, res) => {
+  console.log("backend active");
+
   const { roomId, message, userId } = req.body;
 
   const landlord = await LandLord.findById(userId);
@@ -117,7 +120,17 @@ const deleteRoomById = asyncHandler(async (req, res) => {
   if (!deletedRoom) {
     throw new apiError(500, "Something went wrong while deleting the room");
   }
-
+  let defaultmessage = message;
+  if (!message) {
+    defaultmessage =
+      "This room listing has been removed by the admin. Please contact support for further details";
+  }
+  await sendRoomDeleteEmail(
+    landlord.name,
+    deletedRoom.title,
+    defaultmessage,
+    landlord.email
+  );
   res
     .status(200)
     .json(new apiRes(200, deletedRoom, "Room deletion successful"));
