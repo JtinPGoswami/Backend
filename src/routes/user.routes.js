@@ -21,7 +21,6 @@ import {
   deletListedRoomByLandLord,
   FindListedRoomByLandLord,
   getAllRooms,
-  getFilteredRooms,
   ListRooms,
 } from "../controllers/rooms.controller.js";
 import {
