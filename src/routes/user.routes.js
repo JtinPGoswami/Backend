@@ -10,10 +10,6 @@ import {
   loginUser,
   logoutUser,
   registerSeeker,
-  resendVerificationCode,
-  sendPasswordVerificationCode,
-  verifyEmail,
-  verifyEmailAndUpdatePassword,
   viewListedRoomByUser,
 } from "../controllers/user.controller.js";
 import { isLandLord, verifyJWT } from "../middlewares/auth.middleware.js";
@@ -24,9 +20,13 @@ import {
   ListRooms,
 } from "../controllers/rooms.controller.js";
 import {
+  resendVerificationCode,
+  sendPasswordVerificationCode,
   updatePassword,
   updateProfilePic,
   updateUser,
+  verifyEmail,
+  verifyEmailAndUpdatePassword,
 } from "../controllers/user.update.controller.js";
 import {
   updateRoomDetails,

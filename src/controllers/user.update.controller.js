@@ -5,13 +5,21 @@ import { LandLord } from "../models/landlord.model.js";
 import { RoomSeeker } from "../models/roomSeeker.model.js";
 import { Admin } from "../models/admin.model.js";
 import {
+  findUserByEmail,
   findUserById,
   findUserByIdAndRemoveSensitiveInfo,
+  findUserByOtp,
+  findUserByPassOtp,
 } from "../utils/findUserInDB.js";
 import {
   deletFileFromCloudinary,
   uploadOnCloudinary,
 } from "../utils/cloudinary.js";
+import {
+  sendVerificationEmail,
+  sendVerificationEmailForPasswordChange,
+  sendWelcomeEmail,
+} from "../middlewares/email.js";
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
@@ -227,4 +235,122 @@ const updateUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiRes(200, updatedUser, "user updated successfully"));
 });
-export { updatePassword, updateUser, updateProfilePic };
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { inputOtp } = req.body;
+
+  if (!inputOtp) {
+    throw new apiError(400, "otp is undefine");
+  }
+
+  const user = await findUserByOtp(inputOtp);
+  if (!user) {
+    throw new apiError(401, "invalid or wrong otp");
+  }
+
+  if (Date.now() > user.verficationTokenExpiry) {
+    throw new apiError(401, "otp has expired");
+  }
+
+  user.isVerified = true;
+  user.verficationToken = undefined;
+  user.verficationTokenExpiry = undefined;
+  user.save({ validateBeforeSave: false });
+  const verifiedUser = await findUserByIdAndRemoveSensitiveInfo(user._id);
+
+  await sendWelcomeEmail(user.email, user.name);
+  res
+    .status(200)
+    .json(new apiRes(200, verifiedUser, "email varified successfully"));
+});
+const verifyEmailAndUpdatePassword = asyncHandler(async (req, res) => {
+  const { otp, password } = req.body;
+
+  if (!otp || !password) {
+    throw new apiError(400, "All fileds are required");
+  }
+
+  const user = await findUserByPassOtp(otp);
+  if (!user) {
+    throw new apiError(401, "invalid or wrong otp");
+  }
+
+  if (Date.now() > user.passwordVerficationTokenExpiry) {
+    throw new apiError(401, "otp has expired");
+  }
+
+  user.passwordVerficationToken = undefined;
+  user.passwordVerficationTokenExpiry = undefined;
+  user.password = password;
+
+  user.save({ validateBeforeSave: false });
+
+  await sendWelcomeEmail(user.email, user.name);
+  res
+    .status(200)
+    .json(new apiRes(200, {}, "Password changed successfully successfully"));
+});
+
+const resendVerificationCode = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new apiError(401, "invalid credentials");
+  }
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new apiError(404, `user not found for ${email}`);
+  }
+
+  const verficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
+  const verficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+
+  user.verficationToken = verficationToken;
+  user.verficationTokenExpiry = verficationTokenExpiry;
+  user.save({ validateBeforeSave: false });
+
+  await sendVerificationEmail(user.email, verficationToken);
+
+  res.status(200).json(new apiRes(200, {}, "email send successfully "));
+});
+
+const sendPasswordVerificationCode = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new apiError(401, "invalid credentials");
+  }
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new apiError(404, `user not found for ${email}`);
+  }
+
+  const passwordVerficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
+  const passwordVerficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+
+  user.passwordVerficationToken = passwordVerficationToken;
+  user.passwordVerficationTokenExpiry = passwordVerficationTokenExpiry;
+  user.save({ validateBeforeSave: false });
+
+  await sendVerificationEmailForPasswordChange(
+    user.email,
+    passwordVerficationToken
+  );
+
+  res.status(200).json(new apiRes(200, {}, "email send successfully "));
+});
+export {
+  updatePassword,
+  updateUser,
+  updateProfilePic,
+  verifyEmail,
+  verifyEmailAndUpdatePassword,
+  resendVerificationCode,
+  sendPasswordVerificationCode,
+};

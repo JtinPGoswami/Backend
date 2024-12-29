@@ -3,8 +3,10 @@ import {
   Room_Remove_Email_Template,
   User_Remove_Email_Template,
   Verification_Email_Template,
+  Verification_Email_Template_For_Password_Change,
   Welcome_Email_Template,
 } from "../utils/emailTamplates.js";
+
 export const sendVerificationEmail = async (email, verificationCode) => {
   const info = await transporter.sendMail({
     from: '"Room On Rent " <purijatinn@gmail.com>', // sender address
@@ -16,9 +18,24 @@ export const sendVerificationEmail = async (email, verificationCode) => {
       verificationCode
     ), // html body
   });
-
-  console.log("Message sent");
 };
+
+export const sendVerificationEmailForPasswordChange = async (
+  email,
+  verificationCode
+) => {
+  const info = await transporter.sendMail({
+    from: '"Room On Rent " <purijatinn@gmail.com>', // sender address
+    to: email, // list of receivers
+    subject: "Verify Your Email To Change Password", // Subject line
+    text: "Verify Your Email To Change Password", // plain text body
+    html: Verification_Email_Template_For_Password_Change.replace(
+      "{verificationCode}",
+      verificationCode
+    ), // html body
+  });
+};
+
 export const sendWelcomeEmail = async (email, name) => {
   const info = await transporter.sendMail({
     from: '"Room On Rent "  <purijatinn@gmail.com>', // sender address
@@ -27,8 +44,6 @@ export const sendWelcomeEmail = async (email, name) => {
     text: "Welcome Email", // plain text body
     html: Welcome_Email_Template.replace("{name}", name), // html body
   });
-
-  console.log("Message sent: ");
 };
 export const sendRoomDeleteEmail = async (name, title, message, email) => {
   const info = await transporter.sendMail({
@@ -40,11 +55,8 @@ export const sendRoomDeleteEmail = async (name, title, message, email) => {
       .replace("{roomTitle}", title)
       .replace("{deletionReason}", message), // html body
   });
-
-  console.log("Message sent: ");
 };
 export const sendUserDeleteEmail = async (name, email) => {
-  console.log("from email function ", email, name);
   const info = await transporter.sendMail({
     from: '"Room On Rent "  <purijatinn@gmail.com>', // sender address
     to: email, // list of receivers
@@ -55,6 +67,4 @@ export const sendUserDeleteEmail = async (name, email) => {
       email
     ),
   });
-
-  console.log("Message sent: ");
 };

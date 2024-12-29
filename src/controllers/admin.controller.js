@@ -81,8 +81,6 @@ import {
 // });
 
 const deleteRoomById = asyncHandler(async (req, res) => {
-  console.log("backend active");
-
   const { roomId, message, userId } = req.body;
 
   const landlord = await LandLord.findById(userId);
@@ -144,7 +142,6 @@ const deleteUserById = asyncHandler(async (req, res) => {
   if (!userId) {
     throw new apiError(400, "invalid credentials");
   }
-  console.log(userId, "from backend");
 
   const user = await findUserById(userId);
 
@@ -194,7 +191,6 @@ const deleteUserById = asyncHandler(async (req, res) => {
   if (!deletedUser) {
     throw new apiError(400, "Error occurred while deleting the user");
   }
-  console.log("frob controller", user.name, user.email);
 
   await sendUserDeleteEmail(user.name, user.email);
   res
