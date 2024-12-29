@@ -167,6 +167,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   const user = req.user;
+  let updatedUser = user;
   if (user.role === "landlord") {
     const { name, username, email, phone } = req.body;
     if (
@@ -183,7 +184,7 @@ const updateUser = asyncHandler(async (req, res) => {
     landOwner.username = username;
     landOwner.email = email;
     landOwner.phone = phone;
-    await landOwner.save({ validateBeforeSave: false });
+    updatedUser = await landOwner.save({ validateBeforeSave: false });
   } else if (user.role === "seeker") {
     const { name, email, username, phone, gender, age, profession } = req.body;
     if (
@@ -203,7 +204,7 @@ const updateUser = asyncHandler(async (req, res) => {
     seeker.gender = gender;
     seeker.age = age;
     seeker.profession = profession;
-    await seeker.save({ validateBeforeSave: false });
+    updatedUser = await seeker.save({ validateBeforeSave: false });
   } else if (user.role === "admin") {
     const { name, email, username } = req.body;
     if (
@@ -220,8 +221,10 @@ const updateUser = asyncHandler(async (req, res) => {
     admin.username = username;
     admin.email = email;
 
-    await admin.save({ validateBeforeSave: false });
+    updatedUser = await admin.save({ validateBeforeSave: false });
   }
-  res.status(200).json(new apiRes(200, {}, "user updated successfully"));
+  res
+    .status(200)
+    .json(new apiRes(200, updatedUser, "user updated successfully"));
 });
 export { updatePassword, updateUser, updateProfilePic };
