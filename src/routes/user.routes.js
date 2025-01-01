@@ -22,8 +22,11 @@ import {
 import {
   resendVerificationCode,
   sendPasswordVerificationCode,
+  sendRoleUpdateVerificationCode,
+  updateLandlordToSeeker,
   updatePassword,
   updateProfilePic,
+  updateSeekarToLandlord,
   updateUser,
   verifyEmail,
   verifyEmailAndUpdatePassword,
@@ -48,6 +51,7 @@ router
 
 //secure Routes
 router.route("/login").post(loginUser);
+
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/update/password").post(verifyJWT, updatePassword);
 router.route("/update/user").post(verifyJWT, updateUser);
@@ -91,9 +95,15 @@ router.route("/get/landlord/rooms").post(viewListedRoomByUser);
 router.route("/get/all/rooms").get(getAllRooms);
 
 router.route("/verify/email").post(verifyEmail);
-router.route("/resend/var/code").post(resendVerificationCode);
+router.route("/resend/var/code").post(verifyJWT, resendVerificationCode);
 
-router.route("/send/pass/code").post(sendPasswordVerificationCode);
-router.route("/verify/pass/code").post(verifyEmailAndUpdatePassword);
+router.route("/send/pass/code").post(verifyJWT, sendPasswordVerificationCode);
+router.route("/verify/pass/code").post(verifyJWT, verifyEmailAndUpdatePassword);
+
+router
+  .route("/send/role-update/email")
+  .post(verifyJWT, sendRoleUpdateVerificationCode);
+router.route("/update/to-landlord").post(verifyJWT, updateSeekarToLandlord);
+router.route("/update/to-seeker").post(verifyJWT, updateLandlordToSeeker);
 
 export default router;

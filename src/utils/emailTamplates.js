@@ -465,10 +465,155 @@ const User_Remove_Email_Template = `<!DOCTYPE html>
 </body>
 
 </html>`;
+
+const Role_Change_Email_Template = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Change Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .header {
+            background-color: #FF9800;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 25px;
+            color: #333;
+            line-height: 1.8;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            padding: 15px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+        }
+        p {
+            margin: 0 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Role Change Successful</div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>We are pleased to inform you that your role has been successfully changed to <strong>{newRole}</strong>.</p>
+            <p>If this change was not requested by you or you have any concerns, please contact our support team immediately.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Room On Rent. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+const Varification_Email_Template_For_Role_Change = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Role Change</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .header {
+            background-color: #2196F3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 25px;
+            color: #333;
+            line-height: 1.8;
+        }
+        .verification-code {
+            display: block;
+            margin: 20px 0;
+            font-size: 22px;
+            color: #2196F3;
+            background: #E3F2FD;
+            border: 1px dashed #2196F3;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            padding: 15px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+        }
+        p {
+            margin: 0 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Verify Role Change</div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>You have requested to change your role to <strong>{newRole}</strong>. Please confirm this change by entering the code below:</p>
+            <span class="verification-code">{verificationCode}</span>
+            <p>If you did not make this request, please contact our support team immediately.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Room On Rent. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
 export {
   Verification_Email_Template,
   Welcome_Email_Template,
   Room_Remove_Email_Template,
   User_Remove_Email_Template,
   Verification_Email_Template_For_Password_Change,
+  Varification_Email_Template_For_Role_Change,
+  Role_Change_Email_Template,
 };

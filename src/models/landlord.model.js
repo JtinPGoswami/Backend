@@ -59,6 +59,8 @@ const LandLordSchema = new Schema(
     verficationTokenExpiry: String,
     passwordVerficationToken: String,
     passwordVerficationTokenExpiry: String,
+    roleUpdateVerficationToken: String,
+    roleUpdateVerficationTokenExpiry: String,
   },
   {
     timestamps: true,

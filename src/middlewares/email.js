@@ -1,7 +1,9 @@
 import { transporter } from "./email.config.js";
 import {
+  Role_Change_Email_Template,
   Room_Remove_Email_Template,
   User_Remove_Email_Template,
+  Varification_Email_Template_For_Role_Change,
   Verification_Email_Template,
   Verification_Email_Template_For_Password_Change,
   Welcome_Email_Template,
@@ -66,5 +68,30 @@ export const sendUserDeleteEmail = async (name, email) => {
       "{userEmail}",
       email
     ),
+  });
+};
+export const sendRoleChangeVarificationCode = async (
+  email,
+  varificationCode,
+  role
+) => {
+  const info = await transporter.sendMail({
+    from: '"Room On Rent "  <purijatinn@gmail.com>', // sender address
+    to: email, // list of receivers
+    subject: "Verification Email", // Subject line
+    text: "Verification Email", // plain text body
+    html: Varification_Email_Template_For_Role_Change.replace(
+      "{role}",
+      role
+    ).replace("{verificationCode}", varificationCode),
+  });
+};
+export const sendRoleChangeInfo = async (email, role) => {
+  const info = await transporter.sendMail({
+    from: '"Room On Rent "  <purijatinn@gmail.com>', // sender address
+    to: email, // list of receivers
+    subject: "Role change info Email", // Subject line
+    text: "Role change info Email", // plain text body
+    html: Role_Change_Email_Template.replace("{role}", role),
   });
 };

@@ -180,8 +180,8 @@ const genrateAccessToken = async (userId) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
-  if (!username) {
-    throw new apiError(400, " username required");
+  if (!username || !password) {
+    throw new apiError(400, " Invalid credentials");
   }
   let user = await RoomSeeker.findOne({ username });
   if (!user) {

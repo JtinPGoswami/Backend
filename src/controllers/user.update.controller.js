@@ -16,11 +16,14 @@ import {
   uploadOnCloudinary,
 } from "../utils/cloudinary.js";
 import {
+  sendRoleChangeInfo,
+  sendRoleChangeVarificationCode,
   sendVerificationEmail,
   sendVerificationEmailForPasswordChange,
   sendWelcomeEmail,
 } from "../middlewares/email.js";
-
+import { Room } from "../models/room.model.js";
+import bcrypt from "bcrypt";
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
 
@@ -292,9 +295,8 @@ const verifyEmailAndUpdatePassword = asyncHandler(async (req, res) => {
 });
 
 const resendVerificationCode = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
+  const { email, password } = req.body;
+  if (!email || !password) {
     throw new apiError(401, "invalid credentials");
   }
   const user = await findUserByEmail(email);
@@ -345,6 +347,216 @@ const sendPasswordVerificationCode = asyncHandler(async (req, res) => {
 
   res.status(200).json(new apiRes(200, {}, "email send successfully "));
 });
+const sendRoleUpdateVerificationCode = asyncHandler(async (req, res) => {
+  const loginUser = req.user;
+
+  const email = loginUser.email;
+  console.log("the email", email);
+
+  if (!email) {
+    throw new apiError(401, "invalid credentials");
+  }
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new apiError(404, `user not found for ${email}`);
+  }
+
+  const roleUpdateVerficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
+  const roleUpdateVerficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+
+  user.roleUpdateVerficationToken = roleUpdateVerficationToken;
+  user.roleUpdateVerficationTokenExpiry = roleUpdateVerficationTokenExpiry;
+  user.save({ validateBeforeSave: false });
+
+  await sendRoleChangeVarificationCode(
+    user.email,
+    roleUpdateVerficationToken,
+    loginUser.role
+  );
+
+  res.status(200).json(new apiRes(200, {}, "email send successfully "));
+});
+
+const updateLandlordToSeeker = asyncHandler(async (req, res) => {
+  const { gender, profession, age, password, otp } = req.body;
+
+  const logInUser = req.user;
+  const email = logInUser.email;
+  console.log("the email", email);
+  console.log("the otp", otp);
+  console.log("the password", password);
+  console.log("the gender", gender);
+  console.log("the profession", profession);
+  console.log("the age", age);
+
+  if (!gender || !profession || !age || !email || !otp) {
+    throw new apiError(400, "All fields are required");
+  }
+
+  if (!password) {
+    throw new apiError(400, "password is require");
+  }
+  const validatePassword = await bcrypt.compare(password, logInUser.password);
+  if (!validatePassword) {
+    throw new apiError(401, "invalid credentials");
+  }
+  const user = await LandLord.findOne({ roleUpdateVerficationToken: otp });
+  if (!user) {
+    throw new apiError(404, `User not found for the email ${email}`);
+  }
+
+  if (Date.now() > user.roleUpdateVerficationTokenExpiry) {
+    throw new apiError(401, "otp has expired");
+  }
+
+  user.roleUpdateVerficationToken = undefined;
+  user.roleUpdateVerficationTokenExpiry = undefined;
+  user.password = password;
+
+  user.save({ validateBeforeSave: false });
+
+  const landlord = await LandLord.findOne({ email });
+  if (!landlord) {
+    throw new apiError(404, `User not found for the email ${email}`);
+  }
+
+  const newUser = await RoomSeeker.create({
+    name: landlord.name,
+    email: landlord.email,
+    password: password,
+    username: landlord.username,
+    phone: landlord.phone,
+    gender,
+    age,
+    profession,
+    ProfilePic: landlord.ProfilePic,
+    role: "seeker",
+    isVerified: true,
+  });
+
+  if (!newUser) {
+    throw new apiError(500, "Something went wrong while changing role");
+  }
+
+  const userId = landlord._id;
+  const rooms = await Room.find({ ownerID: userId });
+
+  if (rooms.length > 0) {
+    try {
+      const deletePromises = rooms.flatMap((room) =>
+        room.photos.map((url) => {
+          const urlParts = url.split("/");
+          const fileNameWithExtension = urlParts[urlParts.length - 1];
+          const fileName = fileNameWithExtension.split(".")[0];
+          const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
+          const publicIdArray = shortFileName.split("/");
+          const publicId = publicIdArray[1];
+          return deletFileFromCloudinary(publicId);
+        })
+      );
+
+      await Promise.all(deletePromises);
+      await Room.deleteMany({ ownerID: userId });
+    } catch (error) {
+      throw new apiError(500, "Failed to delete images from Cloudinary");
+    }
+  }
+
+  const deletedLandlord = await LandLord.findOneAndDelete({ email });
+  if (!deletedLandlord) {
+    await RoomSeeker.findOneAndDelete({ email });
+    throw new apiError(500, "Something went wrong while changing role");
+  }
+
+  await sendRoleChangeInfo(user.email, newUser.role);
+
+  const options = {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  };
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .json(new apiRes(200, { user }, "User role changed successfully"));
+});
+
+const updateSeekarToLandlord = asyncHandler(async (req, res) => {
+  const user = req.user;
+  const { password, otp } = req.body;
+  if (!password || !otp) {
+    throw new apiError("invalid credentials");
+  }
+  const validatePassword = await bcrypt.compare(password, user.password);
+  if (!validatePassword) {
+    throw new apiError(401, "invalid credentials");
+  }
+
+  if (!user || !user.email) {
+    throw new apiError(400, "Invalid user or email");
+  }
+
+  const email = user.email;
+  const seeker = await RoomSeeker.findOne({ email });
+
+  if (!seeker) {
+    throw new apiError(404, `User  not found for email: ${email}`);
+  }
+  const verifiedUser = await RoomSeeker.findOne({
+    roleUpdateVerficationToken: otp,
+  });
+
+  if (!verifiedUser) {
+    throw new apiError(401, "invalid or wrong otp");
+  }
+
+  if (Date.now() > verifiedUser.roleUpdateVerficationTokenExpiry) {
+    throw new apiError(401, "otp has expired");
+  }
+
+  verifiedUser.roleUpdateVerficationToken = undefined;
+  verifiedUser.roleUpdateVerficationTokenExpiry = undefined;
+  verifiedUser.password = password;
+
+  verifiedUser.save({ validateBeforeSave: false });
+
+  const newLandlord = await LandLord.create({
+    name: seeker.name,
+    email: seeker.email,
+    password: password,
+    username: seeker.username,
+    phone: seeker.phone,
+    ProfilePic: seeker.ProfilePic,
+    role: "landlord",
+    isVerified: true,
+  });
+
+  if (!newLandlord) {
+    throw new apiError(500, "Something went wrong while changing user role");
+  }
+
+  const deletedSeeker = await RoomSeeker.findByIdAndDelete(user._id);
+
+  if (!deletedSeeker) {
+    await LandLord.findByIdAndDelete(newLandlord._id);
+    throw new apiError(500, "Something went wrong while changing user role");
+  }
+  await sendRoleChangeInfo(user.email, newLandlord.role);
+
+  const options = {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  };
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .json(new apiRes(200, newLandlord, "User role changed successfully"));
+});
+
 export {
   updatePassword,
   updateUser,
@@ -353,4 +565,7 @@ export {
   verifyEmailAndUpdatePassword,
   resendVerificationCode,
   sendPasswordVerificationCode,
+  updateLandlordToSeeker,
+  updateSeekarToLandlord,
+  sendRoleUpdateVerificationCode,
 };
