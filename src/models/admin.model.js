@@ -15,7 +15,6 @@ const AdminSchema = new Schema(
       required: true,
       trim: true,
       minlength: 8,
-      match: /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     },
     name: {
       type: String,

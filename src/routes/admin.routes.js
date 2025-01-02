@@ -3,10 +3,12 @@ import {
   deleteRoomById,
   deleteUserById,
   getAllUsers,
+  registerAdmin,
 } from "../controllers/admin.controller.js";
 import { isAdmin, verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+router.route("/register").post(registerAdmin);
 
 router.route("/get/users").post(verifyJWT, isAdmin, getAllUsers);
 

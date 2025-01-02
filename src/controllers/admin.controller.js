@@ -13,72 +13,83 @@ import { LandLord } from "../models/landlord.model.js";
 import {
   sendRoomDeleteEmail,
   sendUserDeleteEmail,
+  sendVerificationEmail,
 } from "../middlewares/email.js";
-// const registerAdmin = asyncHandler(async (req, res) => {
-//   //get user details from frontend
-//   //validation not empty
-//   //chack if user already exists:username,email
-//   // chack for porfile pic
-//   // upload profile pic on cloudinary
-//   //create user object create intry in db
-//   // remove sensitive info from object
-//   // chack for user creation
+import e from "express";
 
-//   // return responce
+const registerAdmin = asyncHandler(async (req, res) => {
+  //get user details from frontend
+  //validation not empty
+  //chack if user already exists:username,email
+  // chack for porfile pic
+  // upload profile pic on cloudinary
+  //create user object create intry in db
+  // remove sensitive info from object
+  // chack for user creatio
+  // return response
+  const { email, password, username, name, adminSecret } = req.body;
 
-//   const { email, password, username, name } = req.body;
+  console.log("getting request");
 
-//   if ([email, password, username, name].some((item) => item?.trim() === "")) {
-//     throw new apiError(400, "All fileds are require");
-//   }
+  if ([email, password, username, name].some((item) => item?.trim() === "")) {
+    throw new apiError(400, "All fileds are require");
+  }
 
-//   const existedUser = await Admin.findOne({
-//     $or: [{ username }, { email }],
-//   });
+  console.log("debug 1");
+  console.log("debug 1");
+  if (adminSecret !== process.env.ADMIN_SECRET) {
+    throw new apiError(400, "Invalid Admin Secret ");
+  }
+  console.log("debug 2");
+  const existedUser = await Admin.findOne({
+    $or: [{ username }, { email }],
+  });
+  console.log("debug 3");
+  if (existedUser) {
+    console.log(existedUser);
 
-//   if (existedUser) {
-//     throw new apiError(409, "user with Username or email already exists");
-//   }
+    throw new apiError(409, "user with Username or email already exists");
+  }
+  console.log("debug 4");
+  let profiePicLocalPath;
+  if (
+    req.file &&
+    Array.isArray(req.file.profilePic) &&
+    req.file.profilePic.length > 0
+  ) {
+    profiePicLocalPath = req.file.profilePic.path;
+  }
+  console.log("debug 5");
+  const verficationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+  console.log("debug 6");
+  const profilePic = await uploadOnCloudinary(profiePicLocalPath);
+  console.log("debug 7");
+  const user = await Admin.create({
+    name,
+    email,
+    password,
+    username,
+    ProfilePic: profilePic.url,
+    role: "admin",
+    verficationToken,
+    verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
+  });
+  console.log("debug 8");
+  await sendVerificationEmail(user.email, verficationToken);
+  console.log("debug 9");
+  const createdUser = await Admin.findById(user._id).select("-password ");
+  console.log("debug 10");
+  if (!createdUser) {
+    throw new apiError(500, "Something went wrong while registring the user ");
+  }
+  console.log("debug 11");
 
-//   let profiePicLocalPath;
-
-//   if (
-//     req.file &&
-//     Array.isArray(req.file.profilePic) &&
-//     req.file.profilePic.length > 0
-//   ) {
-//     profiePicLocalPath = req.file.profilePic.path;
-//   }
-
-// const verficationToken = Math.floor(
-//   100000 + Math.random() * 900000
-// ).toString();
-
-//   const profilePic = await uploadOnCloudinary(profiePicLocalPath);
-
-//   const user = await Admin.create({
-//     name,
-//     email,
-//     password,
-//     username,
-//     ProfilePic: profilePic.url,
-//     role: "admin",
-// verficationToken,
-//     verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
-//   });
-
-// await sendVerificationEmail(user.email, verficationToken);
-//   const createdUser = await Admin.findById(user._id).select(
-//     "-password "
-//   );
-//   if (!createdUser) {
-//     throw new apiError(500, "Something went wrong while registring the user ");
-//   }
-
-//   res
-//     .status(200)
-//     .json(new apiRes(200, createdUser, "user registration success"));
-// });
+  res
+    .status(200)
+    .json(new apiRes(200, createdUser, "Admin registration success"));
+});
 
 const deleteRoomById = asyncHandler(async (req, res) => {
   const { roomId, message, userId } = req.body;
@@ -211,4 +222,4 @@ const getAllUsers = asyncHandler(async (req, res) => {
   res.status(200).json(new apiRes(200, users, "users fetched successfully "));
 });
 
-export { deleteRoomById, deleteUserById, getAllUsers };
+export { deleteRoomById, deleteUserById, getAllUsers, registerAdmin };
