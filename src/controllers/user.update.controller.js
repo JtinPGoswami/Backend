@@ -351,7 +351,6 @@ const sendRoleUpdateVerificationCode = asyncHandler(async (req, res) => {
   const loginUser = req.user;
 
   const email = loginUser.email;
-  console.log("the email", email);
 
   if (!email) {
     throw new apiError(401, "invalid credentials");
@@ -385,12 +384,6 @@ const updateLandlordToSeeker = asyncHandler(async (req, res) => {
 
   const logInUser = req.user;
   const email = logInUser.email;
-  console.log("the email", email);
-  console.log("the otp", otp);
-  console.log("the password", password);
-  console.log("the gender", gender);
-  console.log("the profession", profession);
-  console.log("the age", age);
 
   if (!gender || !profession || !age || !email || !otp) {
     throw new apiError(400, "All fields are required");

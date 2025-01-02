@@ -95,10 +95,10 @@ router.route("/get/landlord/rooms").post(viewListedRoomByUser);
 router.route("/get/all/rooms").get(getAllRooms);
 
 router.route("/verify/email").post(verifyEmail);
-router.route("/resend/var/code").post(verifyJWT, resendVerificationCode);
+router.route("/resend/var/code").post(resendVerificationCode);
 
-router.route("/send/pass/code").post(verifyJWT, sendPasswordVerificationCode);
-router.route("/verify/pass/code").post(verifyJWT, verifyEmailAndUpdatePassword);
+router.route("/send/pass/code").post(sendPasswordVerificationCode);
+router.route("/verify/pass/code").post(verifyEmailAndUpdatePassword);
 
 router
   .route("/send/role-update/email")

@@ -92,6 +92,6 @@ export const sendRoleChangeInfo = async (email, role) => {
     to: email, // list of receivers
     subject: "Role change info Email", // Subject line
     text: "Role change info Email", // plain text body
-    html: Role_Change_Email_Template.replace("{role}", role),
+    html: Role_Change_Email_Template.replace("{newRole}", role),
   });
 };
