@@ -37,6 +37,9 @@ import {
 } from "../controllers/room.update.controller.js";
 const router = Router();
 
+router.route("/").post((req, res) => {
+  res.status(200).json({ massage: "working" });
+});
 router
   .route("/register/seeker")
   .post(upload.single("profilePic"), registerSeeker);
