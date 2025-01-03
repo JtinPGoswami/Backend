@@ -164,9 +164,6 @@ const deleteUserById = asyncHandler(async (req, res) => {
 
     const rooms = await Room.find({ ownerID: userId }); // Get all rooms belonging to this landlord
     if (rooms.length > 0) {
-      // Log rooms to verify them before deleting
-
-      // Delete images from Cloudinary for all rooms before deletion
       const deletePromises = rooms.map((room) => {
         const images = room.photos;
         return images.map((url) => {
@@ -176,26 +173,21 @@ const deleteUserById = asyncHandler(async (req, res) => {
           const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
           const publicIdArray = shortFileName.split("/");
           const publicId = publicIdArray[1];
-          deletFileFromCloudinary(publicId); // Assume deletFileFromCloudinary is a function to delete images
+          deletFileFromCloudinary(publicId);
         });
       });
 
-      // Wait for all the delete promises to resolve
       try {
-        await Promise.all(deletePromises.flat()); // Flatten the array of promises
+        await Promise.all(deletePromises.flat());
       } catch (error) {
         throw new apiError(500, "Failed to delete images from Cloudinary");
       }
 
-      // Now delete all rooms
-      await Room.deleteMany({ ownerID: userId }); // Delete rooms associated with this landlord
+      await Room.deleteMany({ ownerID: userId });
     }
 
-    // Remove the rooms reference from the landlord's document (Optional, if needed)
     landlord.rooms = [];
     await landlord.save();
-
-    // Finally, delete the landlord
   }
 
   const deletedUser = await findUserByIdAndDelete(userId);

@@ -81,7 +81,7 @@ export const sendRoleChangeVarificationCode = async (
     subject: "Verification Email", // Subject line
     text: "Verification Email", // plain text body
     html: Varification_Email_Template_For_Role_Change.replace(
-      "{role}",
+      "{newRole}",
       role
     ).replace("{verificationCode}", varificationCode),
   });
