@@ -216,10 +216,12 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const loggedInUser = await findUserByIdAndRemoveSensitiveInfo(user._id);
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   const options = {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction, // Secure cookies in production
+    sameSite: isProduction ? "None" : "Lax", // Cross-site support in production
   };
 
   res
@@ -235,10 +237,12 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
   const options = {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction, // Secure cookies in production
+    sameSite: isProduction ? "None" : "Lax", // Cross-site support in production
   };
 
   res
