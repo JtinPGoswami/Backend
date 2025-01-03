@@ -466,11 +466,14 @@ const updateLandlordToSeeker = asyncHandler(async (req, res) => {
 
   await sendRoleChangeInfo(user.email, newUser.role);
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   const options = {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction, // Secure cookies in production
+    sameSite: isProduction ? "None" : "Lax", // Cross-site support in production
   };
+
   res
     .status(200)
     .clearCookie("accessToken", options)
@@ -539,11 +542,14 @@ const updateSeekarToLandlord = asyncHandler(async (req, res) => {
   }
   await sendRoleChangeInfo(user.email, newLandlord.role);
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   const options = {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction, // Secure cookies in production
+    sameSite: isProduction ? "None" : "Lax", // Cross-site support in production
   };
+
   res
     .status(200)
     .clearCookie("accessToken", options)
