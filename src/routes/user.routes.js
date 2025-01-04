@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { upload } from "../middlewares/multer.middleware.js";
 
 // import { registerAdmin } from "../controllers/admin.controller.js";
 import {
@@ -34,7 +35,6 @@ import {
   updateRoomDetails,
   updateRoomImages,
 } from "../controllers/room.update.controller.js";
-import { upload } from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router.route("/").post((req, res) => {
