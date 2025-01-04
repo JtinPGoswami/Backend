@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { upload } from "../utils/cloudinary.js";
 
 // import { registerAdmin } from "../controllers/admin.controller.js";
 import {
@@ -35,10 +34,11 @@ import {
   updateRoomDetails,
   updateRoomImages,
 } from "../controllers/room.update.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router.route("/").post((req, res) => {
-  res.status(200).json({ message: "working" });
+  res.status(200).json({ massage: "working" });
 });
 router
   .route("/register/seeker")
