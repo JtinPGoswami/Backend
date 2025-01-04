@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { upload } from "../middlewares/multer.middleware.js";
+import { upload } from "../utils/cloudinary.js";
 
 // import { registerAdmin } from "../controllers/admin.controller.js";
 import {
@@ -38,7 +38,7 @@ import {
 const router = Router();
 
 router.route("/").post((req, res) => {
-  res.status(200).json({ massage: "working" });
+  res.status(200).json({ message: "working" });
 });
 router
   .route("/register/seeker")
