@@ -14,147 +14,157 @@ import {
 import { Admin } from "../models/admin.model.js";
 import { Room } from "../models/room.model.js";
 import { sendVerificationEmail } from "../middlewares/email.js";
-const registerSeeker = asyncHandler(async (req, res) => {
-  //get user details from frontend
-  //validation not empty
-  //chack if user already exists:username,email
-  // chack for porfile pic
-  // upload profile pic on cloudinary
-  //create user object create intry in db
-  // remove sensitive info from object
-  // chack for user creation
+const registerSeeker = asyncHandler(async (req, res, next) => {
+  try {
+    const { email, password, username, name, phone, gender, age, profession } =
+      req.body;
 
-  // return responce
+    if (
+      [email, password, username, name, phone, gender, age, profession].some(
+        (item) => typeof item !== "string" || item.trim() === ""
+      )
+    ) {
+      throw new apiError(400, "All fields are required");
+    }
 
-  const { email, password, username, name, phone, gender, age, profession } =
-    req.body;
+    const existedUser = await RoomSeeker.findOne({
+      $or: [{ username }, { email }],
+    });
 
-  if (
-    [email, password, username, name, phone, gender, age, profession].some(
-      (item) => typeof item !== "string" || item.trim() === ""
-    )
-  ) {
-    throw new apiError(400, "All fileds are reuqired");
+    if (existedUser) {
+      throw new apiError(
+        409,
+        "User with this Username or Email already exists"
+      );
+    }
+
+    let profilePicUrl = "https://default-avatar.com/default.png";
+    if (req.file && req.file.path) {
+      const profilePic = await uploadOnCloudinary(req.file.path);
+      if (!profilePic || !profilePic.url) {
+        throw new apiError(500, "Failed to upload profile picture");
+      }
+      profilePicUrl = profilePic.url;
+    }
+
+    const session = await RoomSeeker.startSession();
+    session.startTransaction();
+
+    try {
+      const verificationToken = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+
+      const user = await RoomSeeker.create(
+        [
+          {
+            name,
+            email,
+            password,
+            username,
+            phone,
+            gender,
+            age,
+            profession,
+            profilePic: profilePicUrl,
+            role: "seeker",
+            verificationToken,
+            verificationTokenExpiry: Date.now() + 15 * 60 * 1000,
+          },
+        ],
+        { session }
+      );
+
+      await sendVerificationEmail(user[0].email, verificationToken);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      const createdUser = await RoomSeeker.findById(user[0]._id).select(
+        "-password"
+      );
+      res
+        .status(201)
+        .json(new apiRes(201, createdUser, "User registration successful"));
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  } catch (error) {
+    next(error);
   }
-
-  const existedUser = await RoomSeeker.findOne({
-    $or: [{ username }, { email }],
-  });
-
-  if (existedUser) {
-    throw new apiError(409, "user with Username or email already exists");
-  }
-
-  let profiePicLocalPath;
-
-  if (
-    req.file &&
-    Array.isArray(req.file.profilePic) &&
-    req.file.profilePic.length > 0
-  ) {
-    profiePicLocalPath = req.file.profilePic.path;
-  }
-  const profilePic = await uploadOnCloudinary(profiePicLocalPath);
-  const verficationToken = Math.floor(
-    100000 + Math.random() * 900000
-  ).toString();
-
-  const user = await RoomSeeker.create({
-    name,
-    email,
-    password,
-    username,
-    phone,
-    gender,
-    age,
-    profession,
-    ProfilePic: profilePic.url,
-    role: "seeker",
-    verficationToken,
-    verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
-  });
-
-  await sendVerificationEmail(user.email, verficationToken);
-  const createdUser = await RoomSeeker.findById(user._id).select("-password ");
-  if (!createdUser) {
-    throw new apiError(500, "Something went wrong while registring the user ");
-  }
-
-  res
-    .status(200)
-    .json(new apiRes(200, createdUser, "user registration success"));
 });
+
 const landlordRegister = asyncHandler(async (req, res) => {
-  //get user details from frontend
-  //validation not empty
-  //chack if user already exists:username,email
-  // chack for porfile pic
-  // upload profile pic on cloudinary
-  //create user object create intry in db
-  // remove sensitive info from object
-  // chack for user creation
-
-  // return responce
-
   const { name, email, password, username, phone, rooms } = req.body;
 
+  // Validate required fields
   if (
     [name, email, username, password, phone, rooms].some(
       (item) => typeof item === "string" && item.trim() === ""
     )
   ) {
-    throw new apiError(400, "All fileds are required");
+    throw new apiError(400, "All fields are required.");
   }
 
-  const landOwner = await LandLord.findOne({
+  // Check if user already exists (username or email)
+  const existingLandlord = await LandLord.findOne({
     $or: [{ username }, { email }],
   });
 
-  if (landOwner) {
+  if (existingLandlord) {
     throw new apiError(
       409,
-      "User with the same username or email already exists"
+      "A landlord with this username or email already exists."
     );
   }
 
-  let ProfilePicLocalPath;
-  if (
-    req.file &&
-    Array.isArray(req.file.profilePic) &&
-    req.file.profilePic.length > 0
-  ) {
-    ProfilePicLocalPath = req.file.profilePic[0].path;
+  // Handle profile picture upload
+   let profilePicUrl = "https://default-avatar.com/default.png";
+  if (req.file) {
+    profilePicUrl = await uploadOnCloudinary(req.file.path);
   }
 
-  const profilePic = await uploadOnCloudinary(ProfilePicLocalPath);
-  const verficationToken = Math.floor(
+  // Generate verification token
+  const verificationToken = Math.floor(
     100000 + Math.random() * 900000
   ).toString();
+
+  // Create landlord in the database
   const landlord = await LandLord.create({
     name,
     email,
     password,
     username,
     phone,
-    ProfilePic: profilePic.url || "",
+    ProfilePic: profilePicUrl?.url || null, // Ensure it's either a URL or null
     rooms,
     role: "landlord",
-    verficationToken,
-    verficationTokenExpiry: Date.now() + 15 * 60 * 1000,
+    verificationToken,
+    verificationTokenExpiry: Date.now() + 15 * 60 * 1000, // 15 min expiry
   });
 
-  await sendVerificationEmail(landlord.email, verficationToken);
-  const createLandLord = await LandLord.findById(landlord._id).select(
-    "-password "
+  // Send verification email
+  await sendVerificationEmail(landlord.email, verificationToken);
+
+  // Retrieve created landlord without password
+  const createdLandlord = await LandLord.findById(landlord._id).select(
+    "-password"
   );
-  if (!createLandLord) {
-    throw new apiError(500, "Something went wrong while registering the  user");
+
+  if (!createdLandlord) {
+    throw new apiError(
+      500,
+      "An error occurred while registering the landlord. Please try again."
+    );
   }
 
   res
-    .status(200)
-    .json(new apiRes(200, createLandLord, "user registration success"));
+    .status(201)
+    .json(new apiRes(201, createdLandlord, "Landlord registered successfully."));
 });
+
 const genrateAccessToken = async (userId) => {
   try {
     const user = await findUserById(userId);

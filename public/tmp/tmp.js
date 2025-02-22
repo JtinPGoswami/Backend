@@ -1,1 +1,1 @@
-console.log("Tmp file .");
+let tmp="tmp file"

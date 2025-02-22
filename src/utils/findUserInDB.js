@@ -105,12 +105,12 @@ const findUserByOtp = async (otp) => {
   if (!otp) {
     throw new apiError(401, "user id Invalid credentials");
   }
-  let user = await RoomSeeker.findOne({ verficationToken: otp });
+  let user = await RoomSeeker.findOne({ verificationToken: otp });
   if (!user) {
-    user = await LandLord.findOne({ verficationToken: otp });
+    user = await LandLord.findOne({ verificationToken: otp });
   }
   if (!user) {
-    user = await Admin.findOne({ verficationToken: otp });
+    user = await Admin.findOne({ verificationToken: otp });
   }
   return user;
 };
@@ -118,12 +118,12 @@ const findUserByPassOtp = async (otp) => {
   if (!otp) {
     throw new apiError(401, "user id Invalid credentials");
   }
-  let user = await RoomSeeker.findOne({ passwordVerficationToken: otp });
+  let user = await RoomSeeker.findOne({ passwordverificationToken: otp });
   if (!user) {
-    user = await LandLord.findOne({ passwordVerficationToken: otp });
+    user = await LandLord.findOne({ passwordverificationToken: otp });
   }
   if (!user) {
-    user = await Admin.findOne({ passwordVerficationToken: otp });
+    user = await Admin.findOne({ passwordverificationToken: otp });
   }
   return user;
 };

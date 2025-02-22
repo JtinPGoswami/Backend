@@ -42,10 +42,10 @@ const AdminSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    verficationToken: String,
-    verficationTokenExpiry: String,
-    passwordVerficationToken: String,
-    passwordVerficationTokenExpiry: String,
+    verificationToken: String,
+    verificationTokenExpiry: String,
+    passwordverificationToken: String,
+    passwordverificationTokenExpiry: String,
   },
   {
     timestamps: true,
@@ -60,7 +60,7 @@ AdminSchema.pre("save", async function (next) {
     return next(new apiError(400, "Invalid email format"));
   }
 
-  if (admin.password && admin.password.length < 8) {
+  if (admin.isModified("password") && admin.password.length < 8) {
     return next(
       new apiError(400, "Password must be at least 8 characters long")
     );

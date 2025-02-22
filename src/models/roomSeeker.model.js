@@ -29,7 +29,6 @@ const RoomSeekerSchema = new Schema(
       type: Number,
       required: true,
       trim: true,
-      unique: true,
     },
     ProfilePic: {
       type: String,
@@ -60,12 +59,12 @@ const RoomSeekerSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    verficationToken: String,
-    verficationTokenExpiry: String,
-    passwordVerficationToken: String,
-    passwordVerficationTokenExpiry: String,
-    roleUpdateVerficationToken: String,
-    roleUpdateVerficationTokenExpiry: String,
+    verificationToken: String,
+    verificationTokenExpiry: String,
+    passwordverificationToken: String,
+    passwordverificationTokenExpiry: String,
+    roleUpdateverificationToken: String,
+    roleUpdateverificationTokenExpiry: String,
   },
   {
     timestamps: true,
@@ -80,8 +79,10 @@ RoomSeekerSchema.pre("save", async function (next) {
     throw new apiError(400, "Invalid email format");
   }
 
-  if (seeker.password && seeker.password.length < 8) {
-    throw new apiError(400, "Password must be at least 8 characters long");
+  if (seeker.isModified("password") && seeker.password.length < 8) {
+    return next(
+      new apiError(400, "Password must be at least 8 characters long")
+    );
   }
 
   if (seeker.username && seeker.username.length < 5) {

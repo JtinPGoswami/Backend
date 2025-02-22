@@ -27,30 +27,37 @@ import bcrypt from "bcrypt";
 const updatePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confNewPassword } = req.body;
 
+  // Check if all fields are provided
   if (!oldPassword || !newPassword || !confNewPassword) {
-    throw new apiError(400, "All fileds are required");
-  }
-  if (!(newPassword === confNewPassword)) {
-    throw new apiError(400, "password do not match");
+    throw new apiError(400, "All fields are required");
   }
 
+  // Check if new password and confirm password match
+  if (newPassword !== confNewPassword) {
+    throw new apiError(400, "Passwords do not match");
+  }
+
+  // Find user by ID
   const user = await findUserById(req.user._id);
   if (!user) {
     throw new apiError(401, "Invalid access token");
   }
 
-  const isPasswordCorrect = await user.isPasswordCorrect;
-
+  // Verify old password
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
   if (!isPasswordCorrect) {
     throw new apiError(400, "Invalid old password");
   }
 
+  // Update the password
   user.password = newPassword;
 
-  await user.save({ validateBeforeSave: false });
+  // Save the user (assuming hashing is handled in the user model)
+  await user.save();
 
   res.status(200).json(new apiRes(200, {}, "Password changed successfully"));
 });
+
 // const updateName = asyncHandler(async (req, res) => {
 //   const { name } = req.body;
 
@@ -72,52 +79,65 @@ const updatePassword = asyncHandler(async (req, res) => {
 // });
 
 const updateProfilePic = asyncHandler(async (req, res) => {
-  const profiePicLocalPath = req.file.path;
+  const profilePicLocalPath = req.file?.path; // ✅ Fixed typo
 
-  if (!profiePicLocalPath) {
-    throw new apiError(400, "Profile pic is required for update");
+  if (!profilePicLocalPath) {
+    throw new apiError(400, "Profile picture is required for update");
   }
 
   const user = await findUserById(req.user._id);
   if (!user) {
     throw new apiError(404, "User not found");
   }
-  const oldProfilePic = user.ProfilePic;
 
-  const urlParts = oldProfilePic.split("/");
-  const fileNameWithExtension = urlParts[urlParts.length - 1];
-  const fileName = fileNameWithExtension.split(".")[0];
-  const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
-  const publicIdArray = shortFileName.split("/");
-  const publicId = publicIdArray[1];
+  const oldProfilePic = user.ProfilePic;
+  let publicId = null; // ✅ Prevent errors if oldProfilePic is missing
+
+  if (oldProfilePic) {
+    try {
+      const urlParts = oldProfilePic.split("/");
+      const fileNameWithExtension = urlParts[urlParts.length - 1];
+      const fileName = fileNameWithExtension.split(".")[0];
+      const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
+      publicId = shortFileName.split("/")[1];
+    } catch (error) {
+      console.error("Error extracting public ID:", error);
+    }
+  }
 
   let PF;
   try {
-    PF = await uploadOnCloudinary(profiePicLocalPath);
+    PF = await uploadOnCloudinary(profilePicLocalPath);
   } catch (error) {
-    throw new apiError(
-      400,
-      "Something went wrong while uploding the file on Coludinary"
-    );
+    throw new apiError(400, "Something went wrong while uploading the file on Cloudinary"); // ✅ Fixed typos
   }
 
   user.ProfilePic = PF.url;
 
-  const updatedUser = await user.save({ validateBeforeSave: false });
+  let updatedUser;
+  try {
+    updatedUser = await user.save({ validateBeforeSave: false });
+  } catch (error) {
+    await deletFileFromCloudinary(PF.public_id); 
+    throw new apiError(500, "Failed to update profile picture");
+  }
 
-  const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
+  const newUser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
 
-  const deletedFile = await deletFileFromCloudinary(publicId);
-  res
-    .status(200)
-    .json(
-      new apiRes(
-        200,
-        { newuser, deletedFile },
-        "Profile picture updated successfully"
-      )
-    );
+  let deletedFile = null;
+  if (publicId) {
+    try {
+      deletedFile = await deletFileFromCloudinary(publicId);
+    } catch (error) {
+      console.error("Error deleting old profile picture:", error);
+    }
+  }
+
+  res.status(200).json(
+    new apiRes(200, { newUser, deletedFile }, "Profile picture updated successfully")
+  );
 });
+
 // const updatePhone = asyncHandler(async (req, res) => {
 //   const { phone } = req.body;
 
@@ -251,13 +271,13 @@ const verifyEmail = asyncHandler(async (req, res) => {
     throw new apiError(401, "invalid or wrong otp");
   }
 
-  if (Date.now() > user.verficationTokenExpiry) {
+  if (Date.now() > user.verificationTokenExpiry) {
     throw new apiError(401, "otp has expired");
   }
 
   user.isVerified = true;
-  user.verficationToken = undefined;
-  user.verficationTokenExpiry = undefined;
+  user.verificationToken = undefined;
+  user.verificationTokenExpiry = undefined;
   user.save({ validateBeforeSave: false });
   const verifiedUser = await findUserByIdAndRemoveSensitiveInfo(user._id);
 
@@ -278,12 +298,12 @@ const verifyEmailAndUpdatePassword = asyncHandler(async (req, res) => {
     throw new apiError(401, "invalid or wrong otp");
   }
 
-  if (Date.now() > user.passwordVerficationTokenExpiry) {
+  if (Date.now() > user.passwordverificationTokenExpiry) {
     throw new apiError(401, "otp has expired");
   }
 
-  user.passwordVerficationToken = undefined;
-  user.passwordVerficationTokenExpiry = undefined;
+  user.passwordverificationToken = undefined;
+  user.passwordverificationTokenExpiry = undefined;
   user.password = password;
 
   user.save({ validateBeforeSave: false });
@@ -304,17 +324,17 @@ const resendVerificationCode = asyncHandler(async (req, res) => {
     throw new apiError(404, `user not found for ${email}`);
   }
 
-  const verficationToken = Math.floor(
+  const verificationToken = Math.floor(
     100000 + Math.random() * 900000
   ).toString();
 
-  const verficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+  const verificationTokenExpiry = Date.now() + 15 * 60 * 1000;
 
-  user.verficationToken = verficationToken;
-  user.verficationTokenExpiry = verficationTokenExpiry;
+  user.verificationToken = verificationToken;
+  user.verificationTokenExpiry = verificationTokenExpiry;
   user.save({ validateBeforeSave: false });
 
-  await sendVerificationEmail(user.email, verficationToken);
+  await sendVerificationEmail(user.email, verificationToken);
 
   res.status(200).json(new apiRes(200, {}, "email send successfully "));
 });
@@ -330,19 +350,19 @@ const sendPasswordVerificationCode = asyncHandler(async (req, res) => {
     throw new apiError(404, `user not found for ${email}`);
   }
 
-  const passwordVerficationToken = Math.floor(
+  const passwordverificationToken = Math.floor(
     100000 + Math.random() * 900000
   ).toString();
 
-  const passwordVerficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+  const passwordverificationTokenExpiry = Date.now() + 15 * 60 * 1000;
 
-  user.passwordVerficationToken = passwordVerficationToken;
-  user.passwordVerficationTokenExpiry = passwordVerficationTokenExpiry;
+  user.passwordverificationToken = passwordverificationToken;
+  user.passwordverificationTokenExpiry = passwordverificationTokenExpiry;
   user.save({ validateBeforeSave: false });
 
   await sendVerificationEmailForPasswordChange(
     user.email,
-    passwordVerficationToken
+    passwordverificationToken
   );
 
   res.status(200).json(new apiRes(200, {}, "email send successfully "));
@@ -360,19 +380,19 @@ const sendRoleUpdateVerificationCode = asyncHandler(async (req, res) => {
     throw new apiError(404, `user not found for ${email}`);
   }
 
-  const roleUpdateVerficationToken = Math.floor(
+  const roleUpdateverificationToken = Math.floor(
     100000 + Math.random() * 900000
   ).toString();
 
-  const roleUpdateVerficationTokenExpiry = Date.now() + 15 * 60 * 1000;
+  const roleUpdateverificationTokenExpiry = Date.now() + 15 * 60 * 1000;
 
-  user.roleUpdateVerficationToken = roleUpdateVerficationToken;
-  user.roleUpdateVerficationTokenExpiry = roleUpdateVerficationTokenExpiry;
+  user.roleUpdateverificationToken = roleUpdateverificationToken;
+  user.roleUpdateverificationTokenExpiry = roleUpdateverificationTokenExpiry;
   user.save({ validateBeforeSave: false });
 
   await sendRoleChangeVarificationCode(
     user.email,
-    roleUpdateVerficationToken,
+    roleUpdateverificationToken,
     loginUser.role
   );
 
@@ -396,17 +416,17 @@ const updateLandlordToSeeker = asyncHandler(async (req, res) => {
   if (!validatePassword) {
     throw new apiError(401, "invalid credentials");
   }
-  const user = await LandLord.findOne({ roleUpdateVerficationToken: otp });
+  const user = await LandLord.findOne({ roleUpdateverificationToken: otp });
   if (!user) {
     throw new apiError(404, `User not found for the email ${email}`);
   }
 
-  if (Date.now() > user.roleUpdateVerficationTokenExpiry) {
+  if (Date.now() > user.roleUpdateverificationTokenExpiry) {
     throw new apiError(401, "otp has expired");
   }
 
-  user.roleUpdateVerficationToken = undefined;
-  user.roleUpdateVerficationTokenExpiry = undefined;
+  user.roleUpdateverificationToken = undefined;
+  user.roleUpdateverificationTokenExpiry = undefined;
   user.password = password;
 
   user.save({ validateBeforeSave: false });
@@ -502,19 +522,19 @@ const updateSeekarToLandlord = asyncHandler(async (req, res) => {
     throw new apiError(404, `User  not found for email: ${email}`);
   }
   const verifiedUser = await RoomSeeker.findOne({
-    roleUpdateVerficationToken: otp,
+    roleUpdateverificationToken: otp,
   });
 
   if (!verifiedUser) {
     throw new apiError(401, "invalid or wrong otp");
   }
 
-  if (Date.now() > verifiedUser.roleUpdateVerficationTokenExpiry) {
+  if (Date.now() > verifiedUser.roleUpdateverificationTokenExpiry) {
     throw new apiError(401, "otp has expired");
   }
 
-  verifiedUser.roleUpdateVerficationToken = undefined;
-  verifiedUser.roleUpdateVerficationTokenExpiry = undefined;
+  verifiedUser.roleUpdateverificationToken = undefined;
+  verifiedUser.roleUpdateverificationTokenExpiry = undefined;
   verifiedUser.password = password;
 
   verifiedUser.save({ validateBeforeSave: false });

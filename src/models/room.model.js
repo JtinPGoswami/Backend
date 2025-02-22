@@ -4,31 +4,31 @@ const RoomSchema = new Schema(
   {
     title: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     description: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     photos: {
       type: [String],
-      require: true,
+      required: true,
     },
     location: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     city: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     state: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     address: {
@@ -37,17 +37,17 @@ const RoomSchema = new Schema(
     },
     pincode: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     suitableFor: {
       type: String,
       enum: ["student", "girls", "boys", "family", "all", "professional"],
-      require: true,
+      required: true,
     },
     rent: {
       type: Number,
-      require: true,
+      required: true,
       min: 0,
     },
     advance: {
@@ -67,17 +67,17 @@ const RoomSchema = new Schema(
     },
     availability: {
       type: Boolean,
-      require: true,
+      required: true,
     },
     people: {
       type: String,
-      require: true,
+      required: true,
       default: 1,
     },
     ownerID: {
       type: Schema.Types.ObjectId,
       ref: "Landlord",
-      require: true,
+      required: true,
     },
   },
   {

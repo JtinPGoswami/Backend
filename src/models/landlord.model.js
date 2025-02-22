@@ -11,26 +11,25 @@ const LandLordSchema = new Schema(
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
       unique: true,
     },
     password: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     username: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
       unique: true,
     },
     phone: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
-      unique: true,
     },
     ProfilePic: {
       type: String,
@@ -39,7 +38,7 @@ const LandLordSchema = new Schema(
     },
     role: {
       type: String,
-      require: true,
+      required: true,
       enum: ["admin", "landlord", "seeker"],
     },
 
@@ -55,12 +54,12 @@ const LandLordSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    verficationToken: String,
-    verficationTokenExpiry: String,
-    passwordVerficationToken: String,
-    passwordVerficationTokenExpiry: String,
-    roleUpdateVerficationToken: String,
-    roleUpdateVerficationTokenExpiry: String,
+    verificationToken: String,
+    verificationTokenExpiry: String,
+    passwordverificationToken: String,
+    passwordverificationTokenExpiry: String,
+    roleUpdateverificationToken: String,
+    roleUpdateverificationTokenExpiry: String,
   },
   {
     timestamps: true,
@@ -75,7 +74,7 @@ LandLordSchema.pre("save", async function (next) {
     return next(new apiError(400, "Invalid email format"));
   }
 
-  if (landlord.password && landlord.password.length < 8) {
+  if (landlord.isModified("password") && landlord.password.length < 8) {
     return next(
       new apiError(400, "Password must be at least 8 characters long")
     );
