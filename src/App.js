@@ -9,8 +9,7 @@ const app = express();
 
 app.use(
   cors({
-    origin:
-      process.env.CORS_ORIGIN || "https://room-on-rent-frontend.onrender.com/",
+    origin:process.env.CORS_ORIGIN || "https://frontend-ten-tan-40.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   })
