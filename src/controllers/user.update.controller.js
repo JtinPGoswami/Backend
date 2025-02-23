@@ -491,7 +491,7 @@ const updateLandlordToSeeker = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: isProduction, // Secure cookies in production
-    sameSite: isProduction ? "None" : "Lax", // Cross-site support in production
+    sameSite: "None" , // Cross-site support in production
   };
 
   res
@@ -567,7 +567,7 @@ const updateSeekarToLandlord = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: isProduction, // Secure cookies in production
-    sameSite: isProduction ? "None" : "Lax", // Cross-site support in production
+    sameSite:  "None" , // Cross-site support in production
   };
 
   res
