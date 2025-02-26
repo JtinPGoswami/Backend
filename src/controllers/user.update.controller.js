@@ -78,10 +78,13 @@ const updatePassword = asyncHandler(async (req, res) => {
 //   res.status(200).json(new apiRes(200, newuser, "name updated successfully "));
 // });
 
-const updateProfilePic = asyncHandler(async (req, res) => {
-  const profilePicLocalPath = req.file?.path; // ✅ Fixed typo
 
-  if (!profilePicLocalPath) {
+
+
+const updateProfilePic = asyncHandler(async (req, res) => {
+  const profilePicBuffer = req.file?.buffer; // Get buffer from memory storage
+
+  if (!profilePicBuffer) {
     throw new apiError(400, "Profile picture is required for update");
   }
 
@@ -91,7 +94,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
   }
 
   const oldProfilePic = user.ProfilePic;
-  let publicId = null; // ✅ Prevent errors if oldProfilePic is missing
+  let publicId = null;
 
   if (oldProfilePic) {
     try {
@@ -101,15 +104,18 @@ const updateProfilePic = asyncHandler(async (req, res) => {
       const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
       publicId = shortFileName.split("/")[1];
     } catch (error) {
-      console.error("Error extracting public ID:", error);
+      console.error("Error extracting public ID:", error.message);
     }
   }
 
   let PF;
   try {
-    PF = await uploadOnCloudinary(profilePicLocalPath);
+    PF = await uploadOnCloudinary(profilePicBuffer); // Pass buffer instead of path
+    if (!PF || typeof PF === "string") {
+      throw new Error("Failed to upload file to Cloudinary");
+    }
   } catch (error) {
-    throw new apiError(400, "Something went wrong while uploading the file on Cloudinary"); // ✅ Fixed typos
+    throw new apiError(400, error.message || "Error uploading to Cloudinary");
   }
 
   user.ProfilePic = PF.url;
@@ -118,8 +124,8 @@ const updateProfilePic = asyncHandler(async (req, res) => {
   try {
     updatedUser = await user.save({ validateBeforeSave: false });
   } catch (error) {
-    await deletFileFromCloudinary(PF.public_id); 
-    throw new apiError(500, "Failed to update profile picture");
+    await deletFileFromCloudinary(PF.public_id); // Clean up on failure
+    throw new apiError(500, "Failed to update profile picture in database");
   }
 
   const newUser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
@@ -129,7 +135,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
     try {
       deletedFile = await deletFileFromCloudinary(publicId);
     } catch (error) {
-      console.error("Error deleting old profile picture:", error);
+      console.error("Error deleting old profile picture:", error.message);
     }
   }
 
@@ -137,6 +143,7 @@ const updateProfilePic = asyncHandler(async (req, res) => {
     new apiRes(200, { newUser, deletedFile }, "Profile picture updated successfully")
   );
 });
+
 
 // const updatePhone = asyncHandler(async (req, res) => {
 //   const { phone } = req.body;

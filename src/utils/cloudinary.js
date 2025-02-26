@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,28 +6,36 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (fileBuffer) => {
   try {
-    if (!localFilePath) return "Does not find File Path";
-    const uploadResult = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
+    if (!fileBuffer) throw new Error("No file buffer provided");
+
+    // Upload buffer directly to Cloudinary using a stream
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: "auto" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(fileBuffer); // Pass the buffer to the stream
     });
-    fs.unlinkSync(localFilePath);
-    return uploadResult;
+
+    return uploadResult; // Returns { url, public_id, etc. }
   } catch (error) {
-    console.error(error);
-    fs.unlinkSync(localFilePath);
+    console.error("Cloudinary upload error:", error.message);
     return null;
   }
 };
+
 const deletFileFromCloudinary = async (filePublicId) => {
   try {
-    if (!filePublicId) return "Does not find File Path";
+    if (!filePublicId) throw new Error("No file public ID provided");
     const deletedFile = await cloudinary.uploader.destroy(filePublicId);
-
     return deletedFile;
   } catch (error) {
-    console.error(error);
+    console.error("Cloudinary deletion error:", error.message);
     return null;
   }
 };

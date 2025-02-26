@@ -60,8 +60,8 @@ router.route("/update/password").post(verifyJWT, updatePassword);
 router.route("/update/user").post(verifyJWT, updateUser);
 
 router
-  .route("/update/profilepic")
-  .post(verifyJWT, upload.single("profilePic"), updateProfilePic);
+.route("/update/profilepic")
+.post(verifyJWT, upload.single("profilePic"), updateProfilePic);
 
 //user related routes
 router.route("/current/user").get(verifyJWT, getCurrentUser);
