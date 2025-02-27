@@ -103,32 +103,29 @@ const updateRoomImages = asyncHandler(async (req, res) => {
   let uploadedImageUrls = [];
   try {
     const uploadPromises = req.files.roomImages.map((file) =>
-      uploadOnCloudinary(file.path)
+      uploadOnCloudinary(file.buffer)
     );
     const uploadResults = await Promise.all(uploadPromises);
-    uploadedImageUrls = uploadResults.map((upload) => upload.url);
+    uploadedImageUrls = uploadResults
+      .filter((upload) => upload && upload.url)
+      .map((upload) => upload.url);
+    if (uploadedImageUrls.length === 0) {
+      throw new apiError(400, "No images were successfully uploaded");
+    }
   } catch (error) {
     throw new apiError(500, "Failed to upload new images to Cloudinary");
   }
 
   if (uploadedImageUrls.length > 0) {
     const oldImages = room.photos || [];
-
-    const deletePromises = oldImages.map((url) => {
-      const urlParts = url.split("/");
-      const fileNameWithExtension = urlParts[urlParts.length - 1];
-      const fileName = fileNameWithExtension.split(".")[0];
-      const shortFileName = urlParts.slice(-2, -1)[0] + "/" + fileName;
-      const publicIdArray = shortFileName.split("/");
-      const publicId = publicIdArray[1];
-      return deletFileFromCloudinary(publicId);
-    });
-
-    try {
-      await Promise.all(deletePromises);
-    } catch (error) {
-      throw new apiError(500, "Failed to delete old images from Cloudinary");
-    }
+    await Promise.all(
+      oldImages.map((url) => {
+        const publicId = url.split("/").pop().split(".")[0];
+        return deletFileFromCloudinary(publicId).catch((err) =>
+          console.error("Failed to delete old image:", err.message)
+        );
+      })
+    );
   }
 
   room.photos = uploadedImageUrls;
@@ -144,5 +141,6 @@ const updateRoomImages = asyncHandler(async (req, res) => {
       )
     );
 });
+
 
 export { updateRoomDetails, updateRoomImages };

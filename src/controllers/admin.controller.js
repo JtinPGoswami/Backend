@@ -18,63 +18,61 @@ import {
 import e from "express";
 
 const registerAdmin = asyncHandler(async (req, res) => {
-  //get user details from frontend
-  //validation not empty
-  //chack if user already exists:username,email
-  // chack for porfile pic
-  // upload profile pic on cloudinary
-  //create user object create intry in db
-  // remove sensitive info from object
-  // chack for user creatio
-  // return response
   const { email, password, username, name, adminSecret } = req.body;
 
-
+  // Validate required fields
   if ([email, password, username, name].some((item) => item?.trim() === "")) {
-    throw new apiError(400, "All fileds are require");
+    throw new apiError(400, "All fields are required");
   }
 
+  // Validate admin secret
   if (adminSecret !== process.env.ADMIN_SECRET) {
-    throw new apiError(400, "Invalid Admin Secret ");
+    throw new apiError(400, "Invalid Admin Secret");
   }
+
+  // Check for existing user
   const existedUser = await Admin.findOne({
     $or: [{ username }, { email }],
   });
   if (existedUser) {
+    throw new apiError(409, "User with username or email already exists");
+  }
 
-    throw new apiError(409, "user with Username or email already exists");
+  // Handle profile picture upload (using buffer from memoryStorage)
+  let profilePicUrl = "https://default-avatar.com/default.png";
+  if (req.file?.buffer) {
+    const profilePic = await uploadOnCloudinary(req.file.buffer);
+    if (!profilePic || !profilePic.url) {
+      throw new apiError(400, "Failed to upload profile picture to Cloudinary");
+    }
+    profilePicUrl = profilePic.url;
   }
-  let profilePicLocalPath;
-  if (
-    req.file &&
-    Array.isArray(req.file.profilePic) &&
-    req.file.profilePic.length > 0
-  ) {
-    profilePicLocalPath = req.file.profilePic.path;
-  }
-  const verificationToken = Math.floor(
-    100000 + Math.random() * 900000
-  ).toString();
-  const profilePic = await uploadOnCloudinary(profilePicLocalPath);
+
+  // Generate verification token
+  const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Create admin in database
   const user = await Admin.create({
     name,
     email,
     password,
     username,
-    ProfilePic: profilePic.url,
+    ProfilePic: profilePicUrl,
     role: "admin",
     verificationToken,
     verificationTokenExpiry: Date.now() + 15 * 60 * 1000,
   });
+
+  // Send verification email
   await sendVerificationEmail(user.email, verificationToken);
-  const createdUser = await Admin.findById(user._id).select("-password ");
+
+  // Fetch user without password
+  const createdUser = await Admin.findById(user._id).select("-password");
   if (!createdUser) {
-    throw new apiError(500, "Something went wrong while registring the user ");
+    throw new apiError(500, "Something went wrong while registering the user");
   }
 
-  res
-    .status(200)
-    .json(new apiRes(200, createdUser, "Admin registration success"));
+  res.status(200).json(new apiRes(200, createdUser, "Admin registration success"));
 });
 
 const deleteRoomById = asyncHandler(async (req, res) => {
