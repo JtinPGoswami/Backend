@@ -58,29 +58,6 @@ const updatePassword = asyncHandler(async (req, res) => {
   res.status(200).json(new apiRes(200, {}, "Password changed successfully"));
 });
 
-// const updateName = asyncHandler(async (req, res) => {
-//   const { name } = req.body;
-
-//   if (!name) {
-//     throw new apiError(400, "Name is require for updating");
-//   }
-
-//   const user = await findUserById(req.user._id);
-
-//   if (!user) {
-//     throw new apiError(404, "user not found ");
-//   }
-//   user.name = name;
-
-//   const updatedUser = await user.save({ validateBeforeSave: false });
-//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
-
-//   res.status(200).json(new apiRes(200, newuser, "name updated successfully "));
-// });
-
-
-
-
 const updateProfilePic = asyncHandler(async (req, res) => {
   const profilePicBuffer = req.file?.buffer; // Get buffer from memory storage
 
@@ -139,71 +116,19 @@ const updateProfilePic = asyncHandler(async (req, res) => {
     }
   }
 
-  res.status(200).json(
-    new apiRes(200, { newUser, deletedFile }, "Profile picture updated successfully")
-  );
+  res
+    .status(200)
+    .json(
+      new apiRes(
+        200,
+        { newUser, deletedFile },
+        "Profile picture updated successfully"
+      )
+    );
 });
 
-
-// const updatePhone = asyncHandler(async (req, res) => {
-//   const { phone } = req.body;
-
-//   if (!phone) {
-//     throw new apiError(400, "phone number is require for updating");
-//   }
-
-//   const user = await findUserById(req.user._id);
-//   if (!user) {
-//     throw new apiError(404, "user not found ");
-//   }
-
-//   user.phone = phone;
-//   const updatedUser = await user.save({ validateBeforeSave: false });
-//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
-
-//   res
-//     .status(200)
-//     .json(new apiRes(200, newuser, "phone number updated successfully"));
-// });
-// const updateProfession = asyncHandler(async (req, res) => {
-//   const { profession } = req.body;
-//   if (!profession) {
-//     throw new apiError(400, "profession is require for updating");
-//   }
-//   const user = await findUserById(req.user._id);
-//   if (!user) {
-//     throw new apiError(404, "user not found ");
-//   }
-
-//   user.profession = profession;
-//   const updatedUser = await user.save({ validateBeforeSave: false });
-//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
-//   res
-//     .status(200)
-//     .json(new apiRes(200, newuser, "profession updated successfully "));
-// });
-// const updateUsername = asyncHandler(async (req, res) => {
-//   const { username } = req.body;
-//   if (!username) {
-//     throw new apiError(400, "username is require for updating");
-//   }
-//   const user = await findUserById(req.user._id);
-
-//   if (!user) {
-//     throw new apiError(404, "user not found ");
-//   }
-
-//   user.username = username;
-
-//   const updatedUser = await user.save({ validateBeforeSave: false });
-//   const newuser = await findUserByIdAndRemoveSensitiveInfo(updatedUser._id);
-
-//   res
-//     .status(200)
-//     .json(new apiRes(200, newuser, "username updated successfully "));
-// });
-
 const updateUser = asyncHandler(async (req, res) => {
+  console.log("update user");
   const user = req.user;
   let updatedUser = user;
   if (user.role === "landlord") {
@@ -215,9 +140,10 @@ const updateUser = asyncHandler(async (req, res) => {
     ) {
       throw new apiError(400, "All fileds are required");
     }
-    const landOwner = await LandLord.findOne({
-      $or: [{ username }, { email }],
-    });
+    const landOwner = await LandLord.findOne({ email: user.email });
+    if (!landOwner) {
+      throw new apiError(404, "User not found");
+    }
     landOwner.name = name;
     landOwner.username = username;
     landOwner.email = email;
@@ -232,9 +158,13 @@ const updateUser = asyncHandler(async (req, res) => {
     ) {
       throw new apiError(400, "All fileds are require");
     }
-    const seeker = await RoomSeeker.findOne({
-      $or: [{ username }, { email }],
-    });
+    const seeker = await RoomSeeker.findOne({ email: user.email });
+    if (!seeker) {
+      throw new apiError(404, "User not found");
+    }
+    if (age < 18) {
+      throw new apiError(400, "Age must be 18 or older");
+    }
     seeker.name = name;
     seeker.username = username;
     seeker.email = email;
@@ -252,9 +182,10 @@ const updateUser = asyncHandler(async (req, res) => {
     ) {
       throw new apiError(400, "All fileds are require");
     }
-    const admin = await Admin.findOne({
-      $or: [{ username }, { email }],
-    });
+    const admin = await Admin.findOne({ email: user.email });
+
+    console.log(req.body, "body");
+    console.log(admin, "admin");
     admin.name = name;
     admin.username = username;
     admin.email = email;
@@ -400,7 +331,7 @@ const sendRoleUpdateVerificationCode = asyncHandler(async (req, res) => {
   await sendRoleChangeVarificationCode(
     user.email,
     roleUpdateverificationToken,
-    loginUser.role
+    loginUser.role === "landlord" ? "seeker" : "landlord"
   );
 
   res.status(200).json(new apiRes(200, {}, "email send successfully "));
@@ -498,7 +429,7 @@ const updateLandlordToSeeker = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: isProduction, // Secure cookies in production
-    sameSite: "None" , // Cross-site support in production
+    sameSite: "None", // Cross-site support in production
   };
 
   res
@@ -574,7 +505,7 @@ const updateSeekarToLandlord = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: isProduction, // Secure cookies in production
-    sameSite:  "None" , // Cross-site support in production
+    sameSite: "None", // Cross-site support in production
   };
 
   res

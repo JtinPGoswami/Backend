@@ -16,26 +16,20 @@ import { Room } from "../models/room.model.js";
 import { sendVerificationEmail } from "../middlewares/email.js";
 const registerSeeker = asyncHandler(async (req, res, next) => {
   try {
-    const { email, password, username, name, phone, gender, age, profession } =
-      req.body;
+    const { email, password, name, phone, gender, age, profession } = req.body;
 
     if (
-      [email, password, username, name, phone, gender, age, profession].some(
+      [email, password, name, phone, gender, age, profession].some(
         (item) => typeof item !== "string" || item.trim() === ""
       )
     ) {
       throw new apiError(400, "All fields are required");
     }
 
-    const existedUser = await RoomSeeker.findOne({
-      $or: [{ username }, { email }],
-    });
+    const existedUser = await RoomSeeker.findOne({ email: email });
 
     if (existedUser) {
-      throw new apiError(
-        409,
-        "User with this Username or Email already exists"
-      );
+      throw new apiError(409, "User already exists");
     }
 
     let profilePicUrl = "https://default-avatar.com/default.png";
@@ -55,6 +49,7 @@ const registerSeeker = asyncHandler(async (req, res, next) => {
         100000 + Math.random() * 900000
       ).toString();
 
+      const username = email.split("@")[0];
       const user = await RoomSeeker.create(
         [
           {
@@ -97,31 +92,25 @@ const registerSeeker = asyncHandler(async (req, res, next) => {
 });
 
 const landlordRegister = asyncHandler(async (req, res) => {
-  const { name, email, password, username, phone, rooms } = req.body;
+  const { name, email, password, phone, rooms } = req.body;
 
   // Validate required fields
   if (
-    [name, email, username, password, phone, rooms].some(
+    [name, email, password, phone, rooms].some(
       (item) => typeof item === "string" && item.trim() === ""
     )
   ) {
     throw new apiError(400, "All fields are required.");
   }
 
-  // Check if user already exists (username or email)
-  const existingLandlord = await LandLord.findOne({
-    $or: [{ username }, { email }],
-  });
+  // Check if user already exists
+  const existingLandlord = await LandLord.findOne({ email: email });
 
   if (existingLandlord) {
-    throw new apiError(
-      409,
-      "A landlord with this username or email already exists."
-    );
+    throw new apiError(409, "A landlord already exists.");
   }
 
-  // Handle profile picture upload
-   let profilePicUrl = "https://default-avatar.com/default.png";
+  let profilePicUrl = "https://default-avatar.com/default.png";
   if (req.file) {
     profilePicUrl = await uploadOnCloudinary(req.file.path);
   }
@@ -132,6 +121,7 @@ const landlordRegister = asyncHandler(async (req, res) => {
   ).toString();
 
   // Create landlord in the database
+  const username = email.split("@")[0];
   const landlord = await LandLord.create({
     name,
     email,
@@ -162,7 +152,9 @@ const landlordRegister = asyncHandler(async (req, res) => {
 
   res
     .status(201)
-    .json(new apiRes(201, createdLandlord, "Landlord registered successfully."));
+    .json(
+      new apiRes(201, createdLandlord, "Landlord registered successfully.")
+    );
 });
 
 const genrateAccessToken = async (userId) => {
@@ -183,33 +175,32 @@ const genrateAccessToken = async (userId) => {
   } catch (error) {
     throw new apiError(
       500,
-      "Something went wrong while generating access and refresh tokens"
+      "Something went wrong while generating access  token"
     );
   }
 };
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
+  const { email, password } = req.body;
+  if (!email || !password) {
     throw new apiError(400, " Invalid credentials");
   }
-  let user = await RoomSeeker.findOne({ username });
+  let user = await RoomSeeker.findOne({ email });
   if (!user) {
-    user = await LandLord.findOne({ username });
+    user = await LandLord.findOne({ email });
   }
   if (!user) {
-    user = await Admin.findOne({ username });
+    user = await Admin.findOne({ email });
   }
 
   if (!user) {
     throw new apiError(404, "user does not exist");
   }
 
-  if (user.role === "seeker") {
-    if (!user.isVerified) {
-      throw new apiError(401, "user's email is not verified");
-    }
+  if (!user.isVerified) {
+    throw new apiError(401, "user's email is not verified");
   }
+
   const validatePassword = await bcrypt.compare(password, user.password);
   if (!validatePassword) {
     throw new apiError(401, "invalid credentials");
@@ -230,8 +221,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: isProduction, 
-    sameSite: "none", 
+    secure: isProduction, // only true in production
+    sameSite: isProduction ? "none" : "lax", // "none" requires HTTPS
   };
 
   res
@@ -252,7 +243,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: isProduction, // Secure cookies in production
-    sameSite: "None" , // Cross-site support in production
+    sameSite: "None", // Cross-site support in production
   };
 
   res

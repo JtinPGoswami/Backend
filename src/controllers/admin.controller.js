@@ -18,10 +18,10 @@ import {
 import e from "express";
 
 const registerAdmin = asyncHandler(async (req, res) => {
-  const { email, password, username, name, adminSecret } = req.body;
+  const { email, password, name, adminSecret } = req.body;
 
   // Validate required fields
-  if ([email, password, username, name].some((item) => item?.trim() === "")) {
+  if ([email, password, name].some((item) => item?.trim() === "")) {
     throw new apiError(400, "All fields are required");
   }
 
@@ -31,11 +31,9 @@ const registerAdmin = asyncHandler(async (req, res) => {
   }
 
   // Check for existing user
-  const existedUser = await Admin.findOne({
-    $or: [{ username }, { email }],
-  });
+  const existedUser = await Admin.findOne({ email: email });
   if (existedUser) {
-    throw new apiError(409, "User with username or email already exists");
+    throw new apiError(409, "User already exists");
   }
 
   // Handle profile picture upload (using buffer from memoryStorage)
@@ -49,9 +47,12 @@ const registerAdmin = asyncHandler(async (req, res) => {
   }
 
   // Generate verification token
-  const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+  const verificationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
 
   // Create admin in database
+  const username = email.split("@")[0];
   const user = await Admin.create({
     name,
     email,
@@ -72,7 +73,9 @@ const registerAdmin = asyncHandler(async (req, res) => {
     throw new apiError(500, "Something went wrong while registering the user");
   }
 
-  res.status(200).json(new apiRes(200, createdUser, "Admin registration success"));
+  res
+    .status(200)
+    .json(new apiRes(200, createdUser, "Admin registration success"));
 });
 
 const deleteRoomById = asyncHandler(async (req, res) => {
